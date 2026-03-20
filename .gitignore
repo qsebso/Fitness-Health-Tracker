@@ -1,0 +1,14 @@
+# Used for: Git ignore rules.
+# Information inside: Files/folders that should not be committed (env, caches, Python artifacts).
+
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# IDE
+.vscode/
+

@@ -1,0 +1,10 @@
+# Used for: Python dependency list.
+# Information inside: Packages required to run the FastAPI + template + MySQL app skeleton.
+
+fastapi
+uvicorn[standard]
+jinja2
+python-dotenv
+mysql-connector-python
+pytest
+
