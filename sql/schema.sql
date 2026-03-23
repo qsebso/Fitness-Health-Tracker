@@ -11,7 +11,7 @@ CREATE TABLE users (
     date_of_birth DATE NOT NULL CHECK (date_of_birth < CURDATE() AND date_of_birth > '1900-01-01'),
     gender ENUM('male', 'female', 'other') NOT NULL,
     height_inches INT NOT NULL CHECK (height_inches > 0 AND height_inches < 120),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE daily_metrics (
@@ -108,8 +108,8 @@ CREATE TABLE progress_snapshots (
 
 CREATE TABLE support_groups (
     group_id INT AUTO_INCREMENT PRIMARY KEY,
-    group_name VARCHAR(255) NOT NULL,
-    group_type ENUM('friends', 'family', 'accountability') NOT NULL,
+    group_name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
     created_by_user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE
