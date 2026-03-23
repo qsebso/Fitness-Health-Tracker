@@ -21,6 +21,7 @@ The application uses:
 - Goal creation and tracking
 - Dashboard with recent summaries and progress indicators
 - Full CRUD support across user-owned records
+- Support groups: many-to-many relationship via `support_groups` and `group_memberships` (users can belong to multiple groups; groups can have multiple members; roles include owner and member)
 
 ## Tech Stack
 - Python
@@ -44,6 +45,7 @@ The application uses:
 5. Install dependencies:
    ```bash
    pip install -r requirements.txt
+   ```
 6. Start the FastAPI app:
    ```bash
    uvicorn app.main:app --reload
