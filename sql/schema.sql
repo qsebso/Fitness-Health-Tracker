@@ -1,17 +1,5 @@
 -- Used for: Database schema definition (tables, PK/FK/UNIQUE/CHECK constraints).
--- Information inside: Placeholder DDL to be replaced with the finalized 3NF schema.
-
--- TODO: Write CREATE TABLE statements for:
--- - users
--- - exercise_types
--- - workout_logs
--- - daily_metrics
--- - nutrition_logs
--- - goals
--- - daily_checkins
--- - progress_snapshots
--- - achievements
-
+-- Information inside: Finalized DDL for the fitness tracker schema, including support groups.
 
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,7 +18,7 @@ CREATE TABLE daily_metrics (
     metric_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     record_date DATE NOT NULL,
-    weight_lbs DECIMAL(5,2) NOT NULL CHECK (weight_lbs < 1000 AND weight_lbs > 0),
+    weight_lbs DECIMAL(5,2) NOT NULL CHECK (weight_lbs > 0 AND weight_lbs < 1000),
     steps INT NOT NULL CHECK (steps >= 0 AND steps < 100000),
     sleep_hours DECIMAL(5,2) NOT NULL CHECK (sleep_hours >= 0 AND sleep_hours <= 24),
     water_intake_cups DECIMAL(5,2) NOT NULL CHECK (water_intake_cups >= 0 AND water_intake_cups < 100),
@@ -101,7 +89,7 @@ CREATE TABLE workout_logs (
     calories_burned DECIMAL(6,2) CHECK (calories_burned >= 0),
     notes TEXT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (exercise_id) REFERENCES exercise_types(exercise_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    FOREIGN KEY (exercise_id) REFERENCES exercise_types(exercise_id) ON DELETE RESTRICT
 );
 
 CREATE TABLE progress_snapshots (
@@ -116,4 +104,24 @@ CREATE TABLE progress_snapshots (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT unique_snapshot_per_day UNIQUE (user_id, snapshot_date)
+);
+
+CREATE TABLE support_groups (
+    group_id INT AUTO_INCREMENT PRIMARY KEY,
+    group_name VARCHAR(255) NOT NULL,
+    group_type ENUM('friends', 'family', 'accountability') NOT NULL,
+    created_by_user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE group_memberships (
+    membership_id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('owner', 'member') NOT NULL DEFAULT 'member',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_group_membership UNIQUE (group_id, user_id),
+    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

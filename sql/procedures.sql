@@ -46,6 +46,26 @@
 --   What: Return one or more result sets: profile summary, latest daily_metric, active goals, recent workouts, etc.
 --   Why: Optional convenience to reduce round trips; only if your stack benefits from a DB-centric API.
 
+-- sp_create_support_group
+--   What: Create a row in support_groups and assign the creator as the owner in group_memberships.
+--   Why: Keeps support group creation + owner assignment atomic for many-to-many integrity.
+
+-- sp_add_group_member
+--   What: Add a user to a support group with role = member (or provided role if allowed).
+--   Why: Centralizes duplicate checks and permission rules for membership creation.
+
+-- sp_remove_group_member
+--   What: Remove a user from group_memberships for a given group.
+--   Why: Enforces membership-removal rules in one place (e.g., owner-transfer guardrails later).
+
+-- sp_get_group_members
+--   What: Return member rows for a group by joining group_memberships to users.
+--   Why: Common query for group detail pages and collaboration views.
+
+-- sp_get_user_groups
+--   What: Return groups that a user belongs to by joining group_memberships to support_groups.
+--   Why: Common query for listing all groups tied to a user account.
+
 -- =============================================================================
 -- FUNCTIONS — reusable scalar or table expressions (MySQL: deterministic rules apply)
 -- =============================================================================
