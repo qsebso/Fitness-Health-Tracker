@@ -7,6 +7,12 @@ Information inside: Placeholder sections for recent activity, goals, and progres
 
 {% block content %}
   <h2>Dashboard</h2>
+  <p>Welcome, {{ request.session.get("username", "user") }}.</p>
+
+  <form method="post" action="/logout">
+    <button type="submit">Logout</button>
+  </form>
+  <p><a href="/checkins">Go to daily check-ins</a></p>
 
   <section>
     <h3>Recent Summary</h3>
