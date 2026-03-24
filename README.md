@@ -47,10 +47,11 @@ The application uses:
    ```bash
    pip install -r requirements.txt
    ```
-7. Start the FastAPI app:
+7. Start the FastAPI app (from the project root; use `-m` so Python runs the installed package):
    ```bash
-   uvicorn app.main:app --reload
+   python -m uvicorn app.main:app --reload
    ```
+   On some setups you can use `uvicorn app.main:app --reload` instead if `uvicorn` is on your PATH.
 
 ## Notes for submission / later use
 - Keep `.env` local only (never submit secrets); submit `.env.example` instead.
