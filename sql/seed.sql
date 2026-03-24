@@ -70,12 +70,20 @@ VALUES
     (4, 2, '2026-03-14 17:15:00', 25, 208.3, 'Pull-up progression'),
     (5, 3, '2026-03-14 16:45:00', 35, 262.5, 'Lower body focus');
 
-INSERT INTO achievements (user_id, title, description, achieved_at)
+INSERT INTO achievement_definitions (code, title, description)
 VALUES
-    (1, '10K Steps Streak', 'Hit at least 10,000 steps for 5 consecutive days.', '2026-03-15 09:00:00'),
-    (2, 'Meal Prep Master', 'Logged all meals for 14 straight days.', '2026-03-14 21:00:00'),
-    (3, 'Mobility Milestone', 'Completed 20 yoga sessions.', '2026-03-13 20:30:00'),
-    (5, 'Hydration Hero', 'Met daily water goal for 2 weeks.', '2026-03-14 22:15:00');
+    ('steps_streak_5', '10K Steps Streak', 'Hit at least 10,000 steps for 5 consecutive days.'),
+    ('meal_prep_14', 'Meal Prep Master', 'Logged all meals for 14 straight days.'),
+    ('yoga_20', 'Mobility Milestone', 'Completed 20 yoga sessions.'),
+    ('hydration_god', 'Hydration Hero', 'Met daily water goal for 2 weeks.');
+
+INSERT INTO user_achievements (user_id, achievement_def_id, achieved_at)
+VALUES
+    (1, 1, '2026-03-15 09:00:00'),
+    (2, 2, '2026-03-14 21:00:00'),
+    (3, 3, '2026-03-13 20:30:00'),
+    (3, 4, '2026-03-13 20:30:00'),
+    (5, 4, '2026-03-14 22:15:00');
 
 INSERT INTO progress_snapshots (user_id, snapshot_date, avg_weight_lbs_7d, total_workouts_7d, avg_steps_7d, avg_sleep_hours_7d, avg_protein_g_7d)
 VALUES
