@@ -2,8 +2,11 @@
 -- Information inside: Executable procedures; upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+), not VALUES().
 use fitness_db;
 DROP PROCEDURE IF EXISTS sp_register_user;
+DROP PROCEDURE IF EXISTS sp_get_user_auth_by_username;
+DROP PROCEDURE IF EXISTS sp_get_user_by_id;
 DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;
 DROP PROCEDURE IF EXISTS sp_upsert_daily_checkin;
+DROP PROCEDURE IF EXISTS sp_get_user_daily_checkins;
 DROP PROCEDURE IF EXISTS sp_log_nutrition_entry;
 DROP TRIGGER IF EXISTS tr_users_before_insert_dob;
 DROP TRIGGER IF EXISTS tr_users_before_update_dob;
@@ -47,11 +50,50 @@ DELIMITER $$
 CREATE PROCEDURE sp_register_user(
     IN p_username VARCHAR(255),
     IN p_email VARCHAR(255),
-    IN p_password_hash VARCHAR(255)
+    IN p_password_hash VARCHAR(255),
+    IN p_first_name VARCHAR(255),
+    IN p_last_name VARCHAR(255),
+    IN p_date_of_birth DATE,
+    IN p_gender ENUM('male', 'female', 'other'),
+    IN p_height_inches INT
 )
 BEGIN
-    INSERT INTO users (username, email, password_hash)
-    VALUES (p_username, p_email, p_password_hash);
+    INSERT INTO users (
+        username, email, password_hash, first_name, last_name, date_of_birth, gender, height_inches
+    )
+    VALUES (
+        p_username, p_email, p_password_hash, p_first_name, p_last_name, p_date_of_birth, p_gender, p_height_inches
+    );
+
+    SELECT LAST_INSERT_ID() AS user_id;
+END $$
+DELIMITER ;
+
+-- sp_get_user_auth_by_username
+--   What: Get user authentication information by username.
+--   Why: Used for login verification.
+DELIMITER $$
+CREATE PROCEDURE sp_get_user_auth_by_username(
+    IN p_username VARCHAR(255)
+)
+BEGIN
+    SELECT user_id, username, email, password_hash
+    FROM users
+    WHERE username = p_username;
+END $$
+DELIMITER ;
+
+-- sp_get_user_by_id
+--   What: Get user information by user ID.
+--   Why: Used for session management.
+DELIMITER $$
+CREATE PROCEDURE sp_get_user_by_id(
+    IN p_user_id INT
+)
+BEGIN
+    SELECT user_id, username, email, first_name, last_name
+    FROM users
+    WHERE user_id = p_user_id;
 END $$
 DELIMITER ;
 
@@ -100,6 +142,30 @@ BEGIN
         energy_level = new.energy_level,
         adherence_to_plan = new.adherence_to_plan,
         notes = new.notes;
+END $$
+DELIMITER ;
+
+-- sp_get_user_daily_checkins
+--   What: Get daily check-ins for a user.
+--   Why: Used for the check-ins page.
+DELIMITER $$
+CREATE PROCEDURE sp_get_user_daily_checkins(
+    IN p_user_id INT,
+    IN p_limit INT
+)
+BEGIN
+    SELECT
+        checkin_id,
+        user_id,
+        record_date,
+        eating_quality,
+        energy_level,
+        adherence_to_plan,
+        notes
+    FROM daily_checkins
+    WHERE user_id = p_user_id
+    ORDER BY record_date DESC
+    LIMIT p_limit;
 END $$
 DELIMITER ;
 
