@@ -1,6 +1,6 @@
 -- Used for: Seed data and initial lookup values.
 -- Information inside: Varied sample records across all tables for functional testing.
-
+use fitness_db;
 -- NOTE:
 -- - Assumes schema.sql has already been run.
 -- - Insert order follows FK dependencies.
@@ -85,7 +85,7 @@ VALUES
     (4, '2026-03-15', 175.1, 2, 14100.0, 6.4, 125.7),
     (5, '2026-03-15', 128.5, 3, 9300.0, 7.9, 97.3);
 
-INSERT INTO support_groups (group_name, group_type, created_by_user_id)
+INSERT INTO support_groups (group_name, description, created_by_user_id)
 VALUES
     ('Gym Friends', 'friends', 1),
     ('Family Wellness', 'family', 2),

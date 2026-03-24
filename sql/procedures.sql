@@ -1,5 +1,39 @@
 -- Used for: Stored procedures, functions, triggers, and related server-side logic.
--- Information inside: Roadmap only (comments). Implement when you need reusable or enforced behavior.
+-- Information inside: Executable procedures; upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+), not VALUES().
+use fitness_db;
+DROP PROCEDURE IF EXISTS sp_register_user;
+DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;
+DROP PROCEDURE IF EXISTS sp_upsert_daily_checkin;
+DROP PROCEDURE IF EXISTS sp_log_nutrition_entry;
+DROP TRIGGER IF EXISTS tr_users_before_insert_dob;
+DROP TRIGGER IF EXISTS tr_users_before_update_dob;
+
+-- =============================================================================
+-- TRIGGERS — users.date_of_birth not in the future (must match schema.sql)
+-- =============================================================================
+DELIMITER $$
+
+CREATE TRIGGER tr_users_before_insert_dob
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    IF NEW.date_of_birth > CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'date_of_birth cannot be in the future.';
+    END IF;
+END$$
+
+CREATE TRIGGER tr_users_before_update_dob
+BEFORE UPDATE ON users
+FOR EACH ROW
+BEGIN
+    IF NEW.date_of_birth > CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'date_of_birth cannot be in the future.';
+    END IF;
+END$$
+
+DELIMITER ;
 
 -- =============================================================================
 -- STORED PROCEDURES — app-facing workflows (parameterize user_id, dates, limits)
@@ -8,18 +42,87 @@
 -- sp_register_user (or create_user)
 --   What: Insert a new row in users with required fields (password_hash supplied by app after hashing).
 --   Why: One place for column lists and defaults; easier to extend validation or audit logging later.
+DELIMITER $$
+
+CREATE PROCEDURE sp_register_user(
+    IN p_username VARCHAR(255),
+    IN p_email VARCHAR(255),
+    IN p_password_hash VARCHAR(255)
+)
+BEGIN
+    INSERT INTO users (username, email, password_hash)
+    VALUES (p_username, p_email, p_password_hash);
+END $$
+DELIMITER ;
 
 -- sp_upsert_daily_metric
 --   What: INSERT a daily_metrics row or UPDATE the existing row for the same (user_id, record_date).
 --   Why: Enforces “one metric row per user per day” without the app duplicating ON DUPLICATE KEY UPDATE logic.
+DELIMITER $$
+
+CREATE PROCEDURE sp_upsert_daily_metric(
+    IN p_user_id INT,
+    IN p_record_date DATE,
+    IN p_weight_lbs DECIMAL(5,2),
+    IN p_steps INT,
+    IN p_sleep_hours DECIMAL(5,2),
+    IN p_water_intake_cups DECIMAL(5,2)
+)
+BEGIN
+    INSERT INTO daily_metrics (user_id, record_date, weight_lbs, steps, sleep_hours, water_intake_cups)
+    VALUES (p_user_id, p_record_date, p_weight_lbs, p_steps, p_sleep_hours, p_water_intake_cups) AS new
+    ON DUPLICATE KEY UPDATE
+        weight_lbs = new.weight_lbs,
+        steps = new.steps,
+        sleep_hours = new.sleep_hours,
+        water_intake_cups = new.water_intake_cups;
+END $$
+DELIMITER ;
 
 -- sp_upsert_daily_checkin
 --   What: INSERT or UPDATE daily_checkins for (user_id, record_date).
 --   Why: Same pattern as daily_metrics; respects unique_checkin_per_day.
+DELIMITER $$
+
+CREATE PROCEDURE sp_upsert_daily_checkin(
+    IN p_user_id INT,
+    IN p_record_date DATE,
+    IN p_eating_quality ENUM('poor', 'average', 'good'),
+    IN p_energy_level ENUM('low', 'medium', 'high'),
+    IN p_adherence_to_plan ENUM('poor', 'average', 'good'),
+    IN p_notes TEXT
+)
+BEGIN
+    INSERT INTO daily_checkins (user_id, record_date, eating_quality, energy_level, adherence_to_plan, notes)
+    VALUES (p_user_id, p_record_date, p_eating_quality, p_energy_level, p_adherence_to_plan, p_notes) AS new
+    ON DUPLICATE KEY UPDATE
+        eating_quality = new.eating_quality,
+        energy_level = new.energy_level,
+        adherence_to_plan = new.adherence_to_plan,
+        notes = new.notes;
+END $$
+DELIMITER ;
 
 -- sp_log_nutrition_entry
 --   What: INSERT into nutrition_logs for a user (meal, food, macros, optional log_date override).
 --   Why: Encapsulates logging rules (e.g., default TIMESTAMP, future validation).
+DELIMITER $$
+
+CREATE PROCEDURE sp_log_nutrition_entry(
+    IN p_user_id INT,
+    IN p_log_date TIMESTAMP,
+    IN p_meal_type ENUM('breakfast', 'lunch', 'dinner', 'snack'),
+    IN p_food_item VARCHAR(255),
+    IN p_calories INT,
+    IN p_protein_g DECIMAL(6,2),
+    IN p_carbs_g DECIMAL(6,2),
+    IN p_fat_g DECIMAL(6,2)
+)
+BEGIN
+    INSERT INTO nutrition_logs (user_id, log_date, meal_type, food_item, calories, protein_g, carbs_g, fat_g)
+    VALUES (p_user_id, p_log_date, p_meal_type, p_food_item, p_calories, p_protein_g, p_carbs_g, p_fat_g);
+END $$
+DELIMITER ;
 
 -- sp_log_workout
 --   What: INSERT into workout_logs; optionally accept precomputed calories_burned or leave it for a trigger/function.
