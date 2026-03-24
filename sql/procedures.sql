@@ -1,21 +1,53 @@
--- Used for: Stored procedures, functions, triggers, and related server-side logic.
--- Information inside: Executable procedures; upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+), not VALUES().
-use fitness_db;
-DROP PROCEDURE IF EXISTS sp_register_user;
-DROP PROCEDURE IF EXISTS sp_get_user_auth_by_username;
-DROP PROCEDURE IF EXISTS sp_get_user_by_id;
-DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;
-DROP PROCEDURE IF EXISTS sp_upsert_daily_checkin;
-DROP PROCEDURE IF EXISTS sp_get_user_daily_checkins;
-DROP PROCEDURE IF EXISTS sp_log_nutrition_entry;
-DROP TRIGGER IF EXISTS tr_users_before_insert_dob;
-DROP TRIGGER IF EXISTS tr_users_before_update_dob;
+-- Used for: Stored procedures, triggers (by table), and future dashboard notes.
+-- Information inside: Grouped by table. Upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+).
+-- Run after schema.sql (same database).
+
+-- TODO: functions for workout calorie fill, goal progress, maybe achievement progress
+-- TODO: dashboard creation and refresh but manybe use a view for the dashboard
+
+USE fitness_db;
 
 -- =============================================================================
--- TRIGGERS — users.date_of_birth not in the future (must match schema.sql)
+-- DROP ALL (idempotent before CREATE). Trailing comment = quick reference for that object.
+-- =============================================================================
+DROP PROCEDURE IF EXISTS sp_register_user;                        -- INSERT full user row; SELECT new user_id
+DROP PROCEDURE IF EXISTS sp_get_user_auth_by_username;            -- SELECT login fields incl. password_hash by username
+DROP PROCEDURE IF EXISTS sp_get_user_by_id;                       -- SELECT profile row by user_id
+DROP PROCEDURE IF EXISTS sp_update_user_profile;                  -- UPDATE name, email, gender, height, DOB for one user
+DROP PROCEDURE IF EXISTS sp_update_user_password_hash;            -- UPDATE password_hash for one user
+DROP PROCEDURE IF EXISTS sp_upsert_exercise_type;                 -- INSERT or UPDATE exercise_types by unique name
+DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;                  -- INSERT/UPSERT daily_metrics per user+date
+DROP PROCEDURE IF EXISTS sp_upsert_daily_checkin;                 -- INSERT/UPSERT daily_checkins per user+date
+DROP PROCEDURE IF EXISTS sp_get_user_daily_checkins;             -- SELECT recent check-ins for a user
+DROP PROCEDURE IF EXISTS sp_log_nutrition_entry;                  -- INSERT nutrition_logs row
+DROP PROCEDURE IF EXISTS sp_update_nutrition_entry;               -- UPDATE nutrition row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_delete_nutrition_entry;               -- DELETE nutrition row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_log_workout;                          -- INSERT workout_logs row
+DROP PROCEDURE IF EXISTS sp_update_workout_log;                   -- UPDATE workout row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_delete_workout_log;                   -- DELETE workout row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_create_goal;                          -- INSERT goals row
+DROP PROCEDURE IF EXISTS sp_update_goal_status;                   -- UPDATE goal status only (goal_id + user_id)
+DROP PROCEDURE IF EXISTS sp_update_goal;                          -- UPDATE full goal row (goal_id + user_id)
+DROP PROCEDURE IF EXISTS sp_insert_achievement;                   -- legacy name; replaced by sp_grant_user_achievement
+DROP PROCEDURE IF EXISTS sp_grant_user_achievement;               -- INSERT user_achievements if not already earned (by def id)
+DROP PROCEDURE IF EXISTS sp_grant_user_achievement_by_code;       -- Same, resolve achievement_definitions.code first
+DROP PROCEDURE IF EXISTS sp_list_achievement_definitions;         -- SELECT all catalog achievement rows
+DROP PROCEDURE IF EXISTS sp_get_user_achievements;                -- SELECT earned achievements for user (joins definitions)
+DROP PROCEDURE IF EXISTS sp_create_support_group;                 -- INSERT group + creator as owner; SELECT new group_id
+DROP PROCEDURE IF EXISTS sp_add_group_member;                     -- INSERT group_memberships row
+DROP PROCEDURE IF EXISTS sp_remove_group_member;                  -- DELETE membership row
+DROP PROCEDURE IF EXISTS sp_get_group_members;                    -- SELECT members + username for a group
+DROP PROCEDURE IF EXISTS sp_get_user_groups;                      -- SELECT groups + role for a user
+
+DROP TRIGGER IF EXISTS tr_users_before_insert_dob;                -- BEFORE INSERT users: block future DOB
+DROP TRIGGER IF EXISTS tr_users_before_update_dob;                -- BEFORE UPDATE users: block future DOB
+
+-- =============================================================================
+-- TABLE: users (triggers + register + profile + password + reads)
 -- =============================================================================
 DELIMITER $$
 
+-- Trigger: block INSERT if date_of_birth is in the future (uses CURDATE(); not suitable as a static CHECK).
 CREATE TRIGGER tr_users_before_insert_dob
 BEFORE INSERT ON users
 FOR EACH ROW
@@ -26,6 +58,7 @@ BEGIN
     END IF;
 END$$
 
+-- Trigger: block UPDATE if new date_of_birth is in the future.
 CREATE TRIGGER tr_users_before_update_dob
 BEFORE UPDATE ON users
 FOR EACH ROW
@@ -36,17 +69,7 @@ BEGIN
     END IF;
 END$$
 
-DELIMITER ;
-
--- =============================================================================
--- STORED PROCEDURES — app-facing workflows (parameterize user_id, dates, limits)
--- =============================================================================
-
--- sp_register_user (or create_user)
---   What: Insert a new row in users with required fields (password_hash supplied by app after hashing).
---   Why: One place for column lists and defaults; easier to extend validation or audit logging later.
-DELIMITER $$
-
+-- Procedure: register a new user (app supplies password_hash); returns new user_id via SELECT.
 CREATE PROCEDURE sp_register_user(
     IN p_username VARCHAR(255),
     IN p_email VARCHAR(255),
@@ -64,44 +87,89 @@ BEGIN
     VALUES (
         p_username, p_email, p_password_hash, p_first_name, p_last_name, p_date_of_birth, p_gender, p_height_inches
     );
-
     SELECT LAST_INSERT_ID() AS user_id;
-END $$
-DELIMITER ;
+END$$
 
--- sp_get_user_auth_by_username
---   What: Get user authentication information by username.
---   Why: Used for login verification.
-DELIMITER $$
-CREATE PROCEDURE sp_get_user_auth_by_username(
-    IN p_username VARCHAR(255)
-)
+-- Procedure: fetch row for login (includes password_hash for app-side verify).
+CREATE PROCEDURE sp_get_user_auth_by_username(IN p_username VARCHAR(255))
 BEGIN
     SELECT user_id, username, email, password_hash
     FROM users
     WHERE username = p_username;
-END $$
-DELIMITER ;
+END$$
 
--- sp_get_user_by_id
---   What: Get user information by user ID.
---   Why: Used for session management.
-DELIMITER $$
-CREATE PROCEDURE sp_get_user_by_id(
-    IN p_user_id INT
-)
+-- Procedure: fetch profile/session fields for one user by id.
+CREATE PROCEDURE sp_get_user_by_id(IN p_user_id INT)
 BEGIN
-    SELECT user_id, username, email, first_name, last_name
+    SELECT user_id, username, email, first_name, last_name, gender, height_inches, date_of_birth
     FROM users
     WHERE user_id = p_user_id;
-END $$
+END$$
+
+-- Procedure: update editable profile columns (DOB still validated by triggers).
+CREATE PROCEDURE sp_update_user_profile(
+    IN p_user_id INT,
+    IN p_first_name VARCHAR(255),
+    IN p_last_name VARCHAR(255),
+    IN p_email VARCHAR(255),
+    IN p_gender ENUM('male', 'female', 'other'),
+    IN p_height_inches INT,
+    IN p_date_of_birth DATE
+)
+BEGIN
+    UPDATE users
+    SET
+        first_name = p_first_name,
+        last_name = p_last_name,
+        email = p_email,
+        gender = p_gender,
+        height_inches = p_height_inches,
+        date_of_birth = p_date_of_birth
+    WHERE user_id = p_user_id;
+END$$
+
+-- Procedure: set password_hash after app hashes the new password.
+CREATE PROCEDURE sp_update_user_password_hash(
+    IN p_user_id INT,
+    IN p_password_hash VARCHAR(255)
+)
+BEGIN
+    UPDATE users
+    SET password_hash = p_password_hash
+    WHERE user_id = p_user_id;
+END$$
+
 DELIMITER ;
 
--- sp_upsert_daily_metric
---   What: INSERT a daily_metrics row or UPDATE the existing row for the same (user_id, record_date).
---   Why: Enforces “one metric row per user per day” without the app duplicating ON DUPLICATE KEY UPDATE logic.
+-- =============================================================================
+-- TABLE: exercise_types (admin / custom exercises — upsert on unique name)
+-- =============================================================================
 DELIMITER $$
 
+-- Procedure: add or refresh an exercise type by unique name (admin / custom exercises).
+CREATE PROCEDURE sp_upsert_exercise_type(
+    IN p_name VARCHAR(255),
+    IN p_category VARCHAR(255),
+    IN p_muscle_group VARCHAR(255),
+    IN p_calories_per_hour DECIMAL(5,2)
+)
+BEGIN
+    INSERT INTO exercise_types (name, category, muscle_group, calories_per_hour)
+    VALUES (p_name, p_category, p_muscle_group, p_calories_per_hour) AS new
+    ON DUPLICATE KEY UPDATE
+        category = new.category,
+        muscle_group = new.muscle_group,
+        calories_per_hour = new.calories_per_hour;
+END$$
+
+DELIMITER ;
+
+-- =============================================================================
+-- TABLE: daily_metrics
+-- =============================================================================
+DELIMITER $$
+
+-- Procedure: insert or update one daily_metrics row per (user_id, record_date).
 CREATE PROCEDURE sp_upsert_daily_metric(
     IN p_user_id INT,
     IN p_record_date DATE,
@@ -118,14 +186,16 @@ BEGIN
         steps = new.steps,
         sleep_hours = new.sleep_hours,
         water_intake_cups = new.water_intake_cups;
-END $$
+END$$
+
 DELIMITER ;
 
--- sp_upsert_daily_checkin
---   What: INSERT or UPDATE daily_checkins for (user_id, record_date).
---   Why: Same pattern as daily_metrics; respects unique_checkin_per_day.
+-- =============================================================================
+-- TABLE: daily_checkins
+-- =============================================================================
 DELIMITER $$
 
+-- Procedure: insert or update one daily_checkins row per (user_id, record_date).
 CREATE PROCEDURE sp_upsert_daily_checkin(
     IN p_user_id INT,
     IN p_record_date DATE,
@@ -142,17 +212,10 @@ BEGIN
         energy_level = new.energy_level,
         adherence_to_plan = new.adherence_to_plan,
         notes = new.notes;
-END $$
-DELIMITER ;
+END$$
 
--- sp_get_user_daily_checkins
---   What: Get daily check-ins for a user.
---   Why: Used for the check-ins page.
-DELIMITER $$
-CREATE PROCEDURE sp_get_user_daily_checkins(
-    IN p_user_id INT,
-    IN p_limit INT
-)
+-- Procedure: list recent check-ins for a user (newest dates first).
+CREATE PROCEDURE sp_get_user_daily_checkins(IN p_user_id INT, IN p_limit INT)
 BEGIN
     SELECT
         checkin_id,
@@ -166,14 +229,16 @@ BEGIN
     WHERE user_id = p_user_id
     ORDER BY record_date DESC
     LIMIT p_limit;
-END $$
+END$$
+
 DELIMITER ;
 
--- sp_log_nutrition_entry
---   What: INSERT into nutrition_logs for a user (meal, food, macros, optional log_date override).
---   Why: Encapsulates logging rules (e.g., default TIMESTAMP, future validation).
+-- =============================================================================
+-- TABLE: nutrition_logs
+-- =============================================================================
 DELIMITER $$
 
+-- Procedure: insert a nutrition log entry (meal/macros).
 CREATE PROCEDURE sp_log_nutrition_entry(
     IN p_user_id INT,
     IN p_log_date TIMESTAMP,
@@ -187,101 +252,291 @@ CREATE PROCEDURE sp_log_nutrition_entry(
 BEGIN
     INSERT INTO nutrition_logs (user_id, log_date, meal_type, food_item, calories, protein_g, carbs_g, fat_g)
     VALUES (p_user_id, p_log_date, p_meal_type, p_food_item, p_calories, p_protein_g, p_carbs_g, p_fat_g);
-END $$
+END$$
+
+-- Procedure: update a nutrition log row; only if nutrition_id belongs to p_user_id.
+CREATE PROCEDURE sp_update_nutrition_entry(
+    IN p_nutrition_id INT,
+    IN p_user_id INT,
+    IN p_log_date TIMESTAMP,
+    IN p_meal_type ENUM('breakfast', 'lunch', 'dinner', 'snack'),
+    IN p_food_item VARCHAR(255),
+    IN p_calories INT,
+    IN p_protein_g DECIMAL(6,2),
+    IN p_carbs_g DECIMAL(6,2),
+    IN p_fat_g DECIMAL(6,2)
+)
+BEGIN
+    UPDATE nutrition_logs
+    SET
+        log_date = p_log_date,
+        meal_type = p_meal_type,
+        food_item = p_food_item,
+        calories = p_calories,
+        protein_g = p_protein_g,
+        carbs_g = p_carbs_g,
+        fat_g = p_fat_g
+    WHERE nutrition_id = p_nutrition_id
+      AND user_id = p_user_id;
+END$$
+
+-- Procedure: delete a nutrition log row; only if it belongs to p_user_id.
+CREATE PROCEDURE sp_delete_nutrition_entry(IN p_nutrition_id INT, IN p_user_id INT)
+BEGIN
+    DELETE FROM nutrition_logs
+    WHERE nutrition_id = p_nutrition_id
+      AND user_id = p_user_id;
+END$$
+
 DELIMITER ;
 
--- sp_log_workout
---   What: INSERT into workout_logs; optionally accept precomputed calories_burned or leave it for a trigger/function.
---   Why: Keeps workout logging consistent and can call shared calorie logic in one path.
+-- =============================================================================
+-- TABLE: workout_logs
+-- =============================================================================
+DELIMITER $$
 
--- sp_create_goal / sp_update_goal_status
---   What: INSERT goals; UPDATE status, end_date, or target_value for an existing goal owned by the user.
---   Why: Centralizes transitions (e.g., active → completed) and ownership checks in one routine.
+-- Procedure: insert a workout log row.
+CREATE PROCEDURE sp_log_workout(
+    IN p_user_id INT,
+    IN p_exercise_id INT,
+    IN p_log_date TIMESTAMP,
+    IN p_duration_minutes INT,
+    IN p_calories_burned DECIMAL(6,2),
+    IN p_notes TEXT
+)
+BEGIN
+    INSERT INTO workout_logs (user_id, exercise_id, log_date, duration_minutes, calories_burned, notes)
+    VALUES (p_user_id, p_exercise_id, p_log_date, p_duration_minutes, p_calories_burned, p_notes);
+END$$
 
--- sp_insert_achievement
---   What: INSERT into achievements (title, description) for a user, optionally with achieved_at.
---   Why: Single entry point if you later add deduplication rules or notifications.
+-- Procedure: update a workout row; only if workout_id belongs to p_user_id.
+CREATE PROCEDURE sp_update_workout_log(
+    IN p_workout_id INT,
+    IN p_user_id INT,
+    IN p_exercise_id INT,
+    IN p_log_date TIMESTAMP,
+    IN p_duration_minutes INT,
+    IN p_calories_burned DECIMAL(6,2),
+    IN p_notes TEXT
+)
+BEGIN
+    UPDATE workout_logs
+    SET
+        exercise_id = p_exercise_id,
+        log_date = p_log_date,
+        duration_minutes = p_duration_minutes,
+        calories_burned = p_calories_burned,
+        notes = p_notes
+    WHERE workout_id = p_workout_id
+      AND user_id = p_user_id;
+END$$
 
--- sp_refresh_progress_snapshot (single user + snapshot_date)
---   What: Compute 7-day rolling aggregates and INSERT or UPDATE progress_snapshots for that user and snapshot_date
---         (avg weight/steps/sleep from daily_metrics; workout count from workout_logs; avg protein from nutrition_logs over the window).
---   Why: progress_snapshots is derived data; a procedure keeps heavy aggregation off the app and matches unique_snapshot_per_day.
+-- Procedure: delete a workout row; only if it belongs to p_user_id.
+CREATE PROCEDURE sp_delete_workout_log(IN p_workout_id INT, IN p_user_id INT)
+BEGIN
+    DELETE FROM workout_logs
+    WHERE workout_id = p_workout_id
+      AND user_id = p_user_id;
+END$$
 
--- sp_refresh_progress_snapshots_for_date (all users, one snapshot_date)
---   What: Loop or set-based refresh of progress_snapshots for every user for a given date (e.g., nightly job).
---   Why: Batch maintenance for dashboards without per-request aggregation.
-
--- sp_get_user_dashboard (optional)
---   What: Return one or more result sets: profile summary, latest daily_metric, active goals, recent workouts, etc.
---   Why: Optional convenience to reduce round trips; only if your stack benefits from a DB-centric API.
-
--- sp_create_support_group
---   What: Create a row in support_groups and assign the creator as the owner in group_memberships.
---   Why: Keeps support group creation + owner assignment atomic for many-to-many integrity.
-
--- sp_add_group_member
---   What: Add a user to a support group with role = member (or provided role if allowed).
---   Why: Centralizes duplicate checks and permission rules for membership creation.
-
--- sp_remove_group_member
---   What: Remove a user from group_memberships for a given group.
---   Why: Enforces membership-removal rules in one place (e.g., owner-transfer guardrails later).
-
--- sp_get_group_members
---   What: Return member rows for a group by joining group_memberships to users.
---   Why: Common query for group detail pages and collaboration views.
-
--- sp_get_user_groups
---   What: Return groups that a user belongs to by joining group_memberships to support_groups.
---   Why: Common query for listing all groups tied to a user account.
+DELIMITER ;
 
 -- =============================================================================
--- FUNCTIONS — reusable scalar or table expressions (MySQL: deterministic rules apply)
+-- TABLE: goals
 -- =============================================================================
+DELIMITER $$
 
--- fn_calories_burned_from_exercise (duration_minutes, calories_per_hour)
---   What: Return estimated calories (e.g., duration/60 * calories_per_hour) with consistent rounding.
---   Why: Same formula everywhere for workout_logs and reporting; callable from triggers and procedures.
+-- Procedure: create a new goal for a user.
+CREATE PROCEDURE sp_create_goal(
+    IN p_user_id INT,
+    IN p_goal_type ENUM('weight_loss', 'weight_gain', 'muscle_gain', 'endurance'),
+    IN p_target_value DECIMAL(6,2),
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_status ENUM('active', 'completed', 'paused')
+)
+BEGIN
+    INSERT INTO goals (user_id, goal_type, target_value, start_date, end_date, status)
+    VALUES (p_user_id, p_goal_type, p_target_value, p_start_date, p_end_date, p_status);
+END$$
 
--- fn_age_from_dob (date_of_birth, as_of_date)
---   What: Return age in years for display or eligibility checks.
---   Why: Avoid duplicating date math in SQL and app code.
+-- Procedure: change only status; requires matching goal_id and user_id (ownership).
+CREATE PROCEDURE sp_update_goal_status(
+    IN p_goal_id INT,
+    IN p_user_id INT,
+    IN p_status ENUM('active', 'completed', 'paused')
+)
+BEGIN
+    UPDATE goals
+    SET status = p_status
+    WHERE goal_id = p_goal_id
+      AND user_id = p_user_id;
+END$$
 
--- fn_bmi_from_weight_height (weight_lbs, height_inches) — optional
---   What: Return BMI from weight and users.height_inches.
---   Why: Reporting and goal progress without storing redundant BMI on every row.
+-- Procedure: full goal edit (type, target, dates, status); requires matching goal_id and user_id.
+CREATE PROCEDURE sp_update_goal(
+    IN p_goal_id INT,
+    IN p_user_id INT,
+    IN p_goal_type ENUM('weight_loss', 'weight_gain', 'muscle_gain', 'endurance'),
+    IN p_target_value DECIMAL(6,2),
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_status ENUM('active', 'completed', 'paused')
+)
+BEGIN
+    UPDATE goals
+    SET
+        goal_type = p_goal_type,
+        target_value = p_target_value,
+        start_date = p_start_date,
+        end_date = p_end_date,
+        status = p_status
+    WHERE goal_id = p_goal_id
+      AND user_id = p_user_id;
+END$$
+
+DELIMITER ;
 
 -- =============================================================================
--- TRIGGERS — automatic consistency when rows change
+-- TABLES: achievement_definitions (catalog) + user_achievements (earned)
+-- Rule checks (e.g. 5-day step streak) are normally implemented in the app or
+-- in dedicated procedures/events that CALL sp_grant_user_* when conditions hold.
 -- =============================================================================
+DELIMITER $$
 
--- tr_workout_logs_before_insert / tr_workout_logs_before_update
---   What: If calories_burned IS NULL, set it using exercise_types.calories_per_hour and duration_minutes (via fn_calories_burned_from_exercise or inline).
---   Why: Keeps calorie estimates consistent when the app omits the column.
+-- Procedure: grant one catalog achievement to a user once (unique_user_achievement); no-op if duplicate.
+CREATE PROCEDURE sp_grant_user_achievement(
+    IN p_user_id INT,
+    IN p_achievement_def_id INT,
+    IN p_achieved_at TIMESTAMP
+)
+BEGIN
+    INSERT IGNORE INTO user_achievements (user_id, achievement_def_id, achieved_at)
+    VALUES (p_user_id, p_achievement_def_id, p_achieved_at);
+END$$
 
--- tr_goals_before_insert / tr_goals_before_update (optional, if not fully covered by CHECK)
---   What: Reject or adjust rows where end_date is not NULL and end_date <= start_date.
---   Why: Defense in depth if constraints are ever relaxed or loaded from bulk import.
+-- Procedure: grant by stable code (e.g. steps_streak_5); resolves achievement_def_id from achievement_definitions.
+CREATE PROCEDURE sp_grant_user_achievement_by_code(
+    IN p_user_id INT,
+    IN p_code VARCHAR(64),
+    IN p_achieved_at TIMESTAMP
+)
+BEGIN
+    DECLARE v_def_id INT;
 
--- tr_after_daily_metrics_change (optional)
---   What: AFTER INSERT/UPDATE on daily_metrics, call sp_refresh_progress_snapshot for that user and record_date (or queue a refresh).
---   Why: Keeps progress_snapshots in sync; use with care—can be expensive; batch jobs are often preferred.
+    SELECT achievement_def_id INTO v_def_id
+    FROM achievement_definitions
+    WHERE code = p_code
+    LIMIT 1;
 
--- tr_after_workout_or_nutrition_change (optional)
---   What: AFTER INSERT/UPDATE on workout_logs or nutrition_logs, refresh snapshot for affected user/date.
---   Why: Same as above for metrics that feed 7-day aggregates; often replaced by a scheduled job for performance.
+    IF v_def_id IS NOT NULL THEN
+        INSERT IGNORE INTO user_achievements (user_id, achievement_def_id, achieved_at)
+        VALUES (p_user_id, v_def_id, p_achieved_at);
+    END IF;
+END$$
+
+-- Procedure: list all defined achievements (for UI / admin).
+CREATE PROCEDURE sp_list_achievement_definitions()
+BEGIN
+    SELECT achievement_def_id, code, title, description
+    FROM achievement_definitions
+    ORDER BY achievement_def_id;
+END$$
+
+-- Procedure: list a user's earned achievements with titles (newest first).
+CREATE PROCEDURE sp_get_user_achievements(IN p_user_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        ua.user_achievement_id,
+        ua.user_id,
+        ua.achievement_def_id,
+        d.code,
+        d.title,
+        d.description,
+        ua.achieved_at
+    FROM user_achievements ua
+    JOIN achievement_definitions d ON d.achievement_def_id = ua.achievement_def_id
+    WHERE ua.user_id = p_user_id
+    ORDER BY ua.achieved_at DESC
+    LIMIT p_limit;
+END$$
+
+DELIMITER ;
 
 -- =============================================================================
--- EVENTS (MySQL EVENT scheduler) — optional, not strictly “procedures” but same script is fine
+-- TABLES: support_groups + group_memberships (atomic create; membership CRUD + reads)
 -- =============================================================================
+DELIMITER $$
 
--- evt_daily_refresh_progress_snapshots
---   What: Once per day, run sp_refresh_progress_snapshots_for_date for yesterday (or “today” depending on timezone rules).
---   Why: Offloads snapshot maintenance from user traffic and avoids trigger storms.
+-- Procedure: create support_groups row and add creator as owner in group_memberships (single transaction); returns group_id.
+CREATE PROCEDURE sp_create_support_group(
+    IN p_group_name VARCHAR(255),
+    IN p_description TEXT,
+    IN p_created_by_user_id INT
+)
+BEGIN
+    DECLARE v_group_id INT;
+
+    INSERT INTO support_groups (group_name, description, created_by_user_id)
+    VALUES (p_group_name, p_description, p_created_by_user_id);
+
+    SET v_group_id = LAST_INSERT_ID();
+
+    INSERT INTO group_memberships (group_id, user_id, role)
+    VALUES (v_group_id, p_created_by_user_id, 'owner');
+
+    SELECT v_group_id AS group_id;
+END$$
+
+-- Procedure: add a user to a group with a role (respect unique_group_membership).
+CREATE PROCEDURE sp_add_group_member(
+    IN p_group_id INT,
+    IN p_user_id INT,
+    IN p_role ENUM('owner', 'member')
+)
+BEGIN
+    INSERT INTO group_memberships (group_id, user_id, role)
+    VALUES (p_group_id, p_user_id, p_role);
+END$$
+
+-- Procedure: remove a user from a group.
+CREATE PROCEDURE sp_remove_group_member(IN p_group_id INT, IN p_user_id INT)
+BEGIN
+    DELETE FROM group_memberships
+    WHERE group_id = p_group_id
+      AND user_id = p_user_id;
+END$$
+
+-- Procedure: list members of a group with usernames and roles.
+CREATE PROCEDURE sp_get_group_members(IN p_group_id INT)
+BEGIN
+    SELECT u.user_id, u.username, gm.role
+    FROM group_memberships gm
+    JOIN users u ON gm.user_id = u.user_id
+    WHERE gm.group_id = p_group_id;
+END$$
+
+-- Procedure: list groups a user belongs to with group name and membership role.
+CREATE PROCEDURE sp_get_user_groups(IN p_user_id INT)
+BEGIN
+    SELECT sg.group_id, sg.group_name, gm.role
+    FROM group_memberships gm
+    JOIN support_groups sg ON gm.group_id = sg.group_id
+    WHERE gm.user_id = p_user_id;
+END$$
+
+DELIMITER ;
 
 -- =============================================================================
+-- DASHBOARD / progress_snapshots (later — not implemented here)
+-- =============================================================================
+-- future work:
+--   sp_refresh_progress_snapshot(user_id, snapshot_date) — upsert 7-day aggregates into progress_snapshots
+--   sp_refresh_progress_snapshots_for_date(snapshot_date) — batch for all users
+--   EVENT evt_daily_refresh_progress_snapshots — nightly job
+-- Optional triggers/functions (comments only): workout calorie fill, goal date guard, snapshot refresh hooks
+
 -- NOTES
--- =============================================================================
--- - Password verification belongs in the application layer; the DB should only store password_hash.
--- - Prefer CHECK constraints and FKs (already in schema.sql) for static rules; use procedures/triggers for cross-row or derived logic.
--- - If snapshots are refreshed rarely, skip per-row triggers and rely on EVENT + manual sp_refresh_* after bulk imports.
+-- - Password verification stays in the app; DB stores password_hash only.
+-- - Prefer CHECK/FK in schema.sql; procedures enforce ownership (user_id on UPDATE/DELETE where applicable).
+-- - sp_update_goal_status now requires p_user_id so status changes cannot target another user's goal.

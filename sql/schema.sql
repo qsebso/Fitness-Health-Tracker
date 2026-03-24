@@ -66,13 +66,23 @@ CREATE TABLE daily_checkins (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE achievements (
-    achievement_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+-- Master list of achievements (badges). Rules for "when earned" live in app code or future procedures/events.
+CREATE TABLE achievement_definitions (
+    achievement_def_id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(64) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
+    description TEXT NOT NULL
+);
+
+-- Rows here mean a user has earned that definition (once per user per definition).
+CREATE TABLE user_achievements (
+    user_achievement_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    achievement_def_id INT NOT NULL,
     achieved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    CONSTRAINT unique_user_achievement UNIQUE (user_id, achievement_def_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (achievement_def_id) REFERENCES achievement_definitions(achievement_def_id) ON DELETE CASCADE
 );
 
 CREATE TABLE exercise_types (
