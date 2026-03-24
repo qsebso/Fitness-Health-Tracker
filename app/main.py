@@ -11,6 +11,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from app.config import settings
+from app.routers.achievements import router as achievements_router
 from app.routers.auth import router as auth_router
 from app.routers.checkins import router as checkins_router
 
@@ -21,6 +22,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 app.include_router(auth_router)
 app.include_router(checkins_router)
+app.include_router(achievements_router)
 
 
 @app.get("/")

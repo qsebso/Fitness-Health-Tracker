@@ -1,12 +1,36 @@
 <!--
 Used for: Achievements UI.
-Information inside: Placeholder UI for displaying achievements and progress.
+Information inside: Catalog rows with earned state (from user_achievements).
 -->
 
 {% extends "base.html" %}
 
 {% block content %}
   <h2>Achievements</h2>
-  <p>TODO: Render achievement list/progress.</p>
-{% endblock %}
+  <p class="muted">Badges are defined in the database; earning them is enforced by app logic (or future jobs) calling grant procedures when rules are met.</p>
 
+  {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+  {% endif %}
+
+  {% if items %}
+    <ul class="achievement-list">
+      {% for it in items %}
+        <li class="achievement-card {% if it.earned %}achievement-earned{% else %}achievement-locked{% endif %}">
+          <div class="achievement-card-head">
+            <span class="achievement-title">{{ it.title }}</span>
+            {% if it.earned %}
+              <span class="badge badge-earned">Earned</span>
+            {% else %}
+              <span class="badge badge-locked">Locked</span>
+            {% endif %}
+          </div>
+          <p class="achievement-desc">{{ it.description }}</p>
+          <p class="achievement-meta"><code>{{ it.code }}</code>{% if it.achieved_at %} · {{ it.achieved_at }}{% endif %}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% elif not error %}
+    <p>No achievement definitions in the catalog yet.</p>
+  {% endif %}
+{% endblock %}
