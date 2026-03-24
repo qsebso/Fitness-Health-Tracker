@@ -6,22 +6,32 @@ Information inside: Placeholder login form and template variables (e.g., error m
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Login</h2>
+  <section class="auth-card">
+    <h2>Login</h2>
+    <p class="auth-subtitle">Sign in to access your dashboard and trackers.</p>
 
-  <form method="post" action="/login">
-    <label>
-      Username
-      <input type="text" name="username" />
-    </label>
-    <label>
-      Password
-      <input type="password" name="password" />
-    </label>
-    <button type="submit">Login</button>
-  </form>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
 
-  {% if error %}
-    <p class="error">{{ error }}</p>
-  {% endif %}
+    <form class="auth-form" method="post" action="/login">
+      <label>
+        Username
+        <input type="text" name="username" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Login</button>
+      </div>
+    </form>
+
+    <p class="helper-text">Need an account?</p>
+    <form method="get" action="/register">
+      <button class="btn btn-secondary" type="submit">Create an account</button>
+    </form>
+  </section>
 {% endblock %}
 

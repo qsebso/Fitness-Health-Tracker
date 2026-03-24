@@ -13,7 +13,21 @@ Information inside: Jinja blocks (e.g., `content`) for child templates to fill i
   </head>
   <body>
     <header class="app-header">
-      <h1>Fitness Trend Tracking System</h1>
+      <div class="header-row">
+        <h1>Fitness Trend Tracking System</h1>
+        <nav class="top-nav">
+          {% if request.session.get("user_id") %}
+            <a href="/">Dashboard</a>
+            <a href="/checkins">Check-ins</a>
+            <form method="post" action="/logout">
+              <button class="btn btn-secondary" type="submit">Logout</button>
+            </form>
+          {% else %}
+            <a href="/login">Login</a>
+            <a href="/register">Create Account</a>
+          {% endif %}
+        </nav>
+      </div>
     </header>
 
     <main class="app-main">
