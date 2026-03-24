@@ -128,3 +128,7 @@ CREATE TABLE group_memberships (
     FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+CREATE USER IF NOT EXISTS 'fitness_app'@'localhost' IDENTIFIED BY 'StrongPass123!';
+GRANT ALL PRIVILEGES ON fitness_db.* TO 'fitness_app'@'localhost';
+FLUSH PRIVILEGES;
