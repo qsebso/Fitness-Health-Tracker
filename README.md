@@ -39,14 +39,20 @@ The application uses:
 
 ## Setup
 1. Create a MySQL database
-2. Add environment variables in `.env`
+2. Copy `.env.example` to `.env` and fill in your local values
 3. Run `sql/schema.sql`
 4. Run `sql/seed.sql`
-5. Install dependencies:
+5. Run `sql/procedures.sql`
+6. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-6. Start the FastAPI app:
+7. Start the FastAPI app:
    ```bash
    uvicorn app.main:app --reload
    ```
+
+## Notes for submission / later use
+- Keep `.env` local only (never submit secrets); submit `.env.example` instead.
+- Use a dedicated MySQL user (e.g. `fitness_app`) with access to `fitness_db`.
+- Make sure `MYSQL_DATABASE` in `.env` matches the DB created by `sql/schema.sql`.

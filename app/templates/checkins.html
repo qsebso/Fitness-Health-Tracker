@@ -6,7 +6,87 @@ Information inside: Placeholder UI for viewing and updating check-in entries.
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Check-Ins</h2>
-  <p>TODO: Add daily check-in form and list.</p>
+  <div class="btn-row">
+    <form method="get" action="/">
+      <button class="btn btn-secondary" type="submit">Back to Dashboard</button>
+    </form>
+  </div>
+
+  <section class="auth-card">
+    <h2>Daily Check-ins</h2>
+    <p class="auth-subtitle">Log your daily quality, energy, and adherence.</p>
+
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form class="auth-form" method="post" action="/checkins">
+      <label>
+        Date
+        <input type="date" name="record_date" value="{{ today }}" required />
+      </label>
+      <label>
+        Eating quality
+        <select name="eating_quality" required>
+          <option value="poor">poor</option>
+          <option value="average" selected>average</option>
+          <option value="good">good</option>
+        </select>
+      </label>
+      <label>
+        Energy level
+        <select name="energy_level" required>
+          <option value="low">low</option>
+          <option value="medium" selected>medium</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+      <label>
+        Adherence to plan
+        <select name="adherence_to_plan" required>
+          <option value="poor">poor</option>
+          <option value="average" selected>average</option>
+          <option value="good">good</option>
+        </select>
+      </label>
+      <label>
+        Notes
+        <input type="text" name="notes" maxlength="500" placeholder="Optional notes" />
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Save check-in</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="auth-card">
+    <h3>Recent Check-ins</h3>
+    {% if rows %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Eating</th>
+            <th>Energy</th>
+            <th>Adherence</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>{{ row.record_date }}</td>
+              <td>{{ row.eating_quality }}</td>
+              <td>{{ row.energy_level }}</td>
+              <td>{{ row.adherence_to_plan }}</td>
+              <td>{{ row.notes or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="helper-text">No check-ins yet. Add your first one above.</p>
+    {% endif %}
+  </section>
 {% endblock %}
 

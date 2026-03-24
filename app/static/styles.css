@@ -7,6 +7,8 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   margin: 0;
   padding: 0;
+  background: #f7f8fb;
+  color: #1f2937;
 }
 
 .app-header {
@@ -15,11 +17,133 @@ body {
   color: #fff;
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-nav a {
+  color: #e5e7eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.top-nav a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.top-nav form {
+  margin: 0;
+}
+
 .app-main {
   padding: 16px;
 }
 
 .error {
   color: #b00020;
+  background: #fde7ec;
+  border: 1px solid #f8b9c4;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.auth-card {
+  max-width: 520px;
+  margin: 24px auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 22px;
+}
+
+.auth-subtitle {
+  margin-top: -6px;
+  margin-bottom: 16px;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.auth-form input,
+.auth-form select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #60a5fa;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.helper-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  padding: 8px;
+  font-size: 0.92rem;
+}
+
+th {
+  background: #f9fafb;
 }
 

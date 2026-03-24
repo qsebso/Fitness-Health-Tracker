@@ -7,4 +7,6 @@ jinja2
 python-dotenv
 mysql-connector-python
 pytest
+python-multipart
+pydantic
 
