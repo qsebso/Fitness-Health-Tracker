@@ -1,5 +1,8 @@
 -- Used for: Database schema definition (tables, PK/FK/UNIQUE/CHECK constraints).
 -- Information inside: Finalized DDL for the fitness tracker schema, including support groups.
+DROP SCHEMA IF EXISTS fitness_db;
+CREATE SCHEMA fitness_db;
+use fitness_db;
 
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -8,10 +11,10 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
-    date_of_birth DATE NOT NULL CHECK (date_of_birth < CURDATE() AND date_of_birth > '1900-01-01'),
+    date_of_birth DATE NOT NULL,
     gender ENUM('male', 'female', 'other') NOT NULL,
     height_inches INT NOT NULL CHECK (height_inches > 0 AND height_inches < 120),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE daily_metrics (
@@ -108,8 +111,8 @@ CREATE TABLE progress_snapshots (
 
 CREATE TABLE support_groups (
     group_id INT AUTO_INCREMENT PRIMARY KEY,
-    group_name VARCHAR(255) NOT NULL,
-    group_type ENUM('friends', 'family', 'accountability') NOT NULL,
+    group_name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
     created_by_user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE
