@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
@@ -79,3 +80,12 @@ async def dashboard(request: Request):
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
+=======
+"""
+Used for: Authentication routes (register/login/logout).
+Information inside: Placeholder endpoints that will call `AuthService`.
+"""
+
+# TODO: Implement FastAPI routes for authentication.
+
+>>>>>>> 8be1315 (inital commit)

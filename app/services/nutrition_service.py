@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from app.db import get_db_connection
 
 class NutritionService:
@@ -37,3 +38,12 @@ class NutritionService:
         )
         conn.commit()
         conn.close()
+=======
+"""
+Used for: Nutrition business logic.
+Information inside: Placeholder functions for nutrition/meals CRUD and validation rules.
+"""
+
+# TODO: Implement nutrition service.
+
+>>>>>>> 8be1315 (inital commit)

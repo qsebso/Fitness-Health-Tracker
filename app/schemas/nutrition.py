@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
@@ -37,3 +38,12 @@ async def add_nutrition(
 async def delete_nutrition(request: Request, nutrition_id: int):
     NutritionService.delete(nutrition_id)
     return RedirectResponse(url="/nutrition", status_code=303)
+=======
+"""
+Used for: Nutrition schema definitions.
+Information inside: Placeholder Pydantic models for meal/nutrition logging.
+"""
+
+# TODO: Define nutrition schemas.
+
+>>>>>>> 8be1315 (inital commit)

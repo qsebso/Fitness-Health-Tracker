@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- Used for: Stored procedures, functions, triggers, and related server-side logic.
 -- Information inside: Roadmap only (comments). Implement when you need reusable or enforced behavior.
 
@@ -116,3 +117,9 @@
 -- - Password verification belongs in the application layer; the DB should only store password_hash.
 -- - Prefer CHECK constraints and FKs (already in schema.sql) for static rules; use procedures/triggers for cross-row or derived logic.
 -- - If snapshots are refreshed rarely, skip per-row triggers and rely on EVENT + manual sp_refresh_* after bulk imports.
+=======
+-- Used for: Stored procedures (optional).
+-- Information inside: Placeholder CREATE PROCEDURE statements for common workflows.
+
+-- TODO: Add stored procedures if you want reusable server-side logic.
+>>>>>>> 8be1315 (inital commit)

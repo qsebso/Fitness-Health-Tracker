@@ -1,4 +1,5 @@
 -- Used for: Database schema definition (tables, PK/FK/UNIQUE/CHECK constraints).
+<<<<<<< HEAD
 -- Information inside: Finalized DDL for the fitness tracker schema, including support groups.
 
 CREATE TABLE users (
@@ -125,3 +126,18 @@ CREATE TABLE group_memberships (
     FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+=======
+-- Information inside: Placeholder DDL to be replaced with the finalized 3NF schema.
+
+-- TODO: Write CREATE TABLE statements for:
+-- - users
+-- - exercise_types
+-- - workout_logs
+-- - daily_metrics
+-- - nutrition_logs
+-- - goals
+-- - daily_checkins
+-- - progress_snapshots
+-- - achievements
+
+>>>>>>> 8be1315 (inital commit)

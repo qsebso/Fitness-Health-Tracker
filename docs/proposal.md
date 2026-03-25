@@ -92,10 +92,13 @@ The domain also exercises many core database concepts covered in this course in 
 Existing commercial fitness applications store data in proprietary formats that users cannot directly query or control. Building a custom relational database allows users to store and query their own health data directly and enables more flexible reporting than many commercial tools.
 The project also aligns with an interest in fitness and behavioral trend analysis, making it both academically relevant and personally interesting.
 
+<<<<<<< HEAD
 This project includes support groups to introduce a many-to-many relationship.
 Users can belong to multiple groups, and groups can contain multiple users.
 This is implemented using the group_memberships associative table.
 
+=======
+>>>>>>> 8be1315 (inital commit)
 
 
 

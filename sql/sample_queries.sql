@@ -1,4 +1,5 @@
 -- Used for: Example CRUD / reporting SQL queries for documentation and testing.
+<<<<<<< HEAD
 -- Information inside: Representative queries that match the current schema.
 
 -- Get user groups
@@ -12,4 +13,9 @@ SELECT u.user_id, u.username, gm.role
 FROM group_memberships gm
 JOIN users u ON gm.user_id = u.user_id
 WHERE gm.group_id = ?;
+=======
+-- Information inside: Placeholder SELECT/INSERT/UPDATE/DELETE examples that match the schema.
+
+-- TODO: Add representative sample queries (scoped to a user_id when applicable).
+>>>>>>> 8be1315 (inital commit)
 
