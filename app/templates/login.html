@@ -1,0 +1,27 @@
+<!--
+Used for: Login page UI.
+Information inside: Placeholder login form and template variables (e.g., error messages).
+-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Login</h2>
+
+  <form method="post" action="/login">
+    <label>
+      Username
+      <input type="text" name="username" />
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" />
+    </label>
+    <button type="submit">Login</button>
+  </form>
+
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+{% endblock %}
+

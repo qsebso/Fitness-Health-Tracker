@@ -1,0 +1,27 @@
+<!--
+Used for: Site-wide HTML layout (shared <head>, navigation, and page blocks).
+Information inside: Jinja blocks (e.g., `content`) for child templates to fill in.
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or "Fitness Trend Tracking System" }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Fitness Trend Tracking System</h1>
+    </header>
+
+    <main class="app-main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <script src="/static/app.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
+
