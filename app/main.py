@@ -14,6 +14,7 @@ from app.config import settings
 from app.routers.achievements import router as achievements_router
 from app.routers.auth import router as auth_router
 from app.routers.checkins import router as checkins_router
+from app.routers.nutrition import router as nutrition_router
 
 app = FastAPI(title="Fitness Trend Tracking System")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
@@ -23,6 +24,7 @@ templates = Jinja2Templates(directory="app/templates")
 app.include_router(auth_router)
 app.include_router(checkins_router)
 app.include_router(achievements_router)
+app.include_router(nutrition_router)
 
 
 @app.get("/")
