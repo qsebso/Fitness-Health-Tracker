@@ -38,6 +38,8 @@ DROP PROCEDURE IF EXISTS sp_add_group_member;                     -- INSERT grou
 DROP PROCEDURE IF EXISTS sp_remove_group_member;                  -- DELETE membership row
 DROP PROCEDURE IF EXISTS sp_get_group_members;                    -- SELECT members + username for a group
 DROP PROCEDURE IF EXISTS sp_get_user_groups;                      -- SELECT groups + role for a user
+DROP PROCEDURE IF EXISTS sp_create_group_post;                    -- INSERT group_posts row for a group member
+DROP PROCEDURE IF EXISTS sp_get_group_posts;                      -- SELECT recent posts in a group (newest first)
 
 DROP TRIGGER IF EXISTS tr_users_before_insert_dob;                -- BEFORE INSERT users: block future DOB
 DROP TRIGGER IF EXISTS tr_users_before_update_dob;                -- BEFORE UPDATE users: block future DOB
@@ -523,6 +525,38 @@ BEGIN
     FROM group_memberships gm
     JOIN support_groups sg ON gm.group_id = sg.group_id
     WHERE gm.user_id = p_user_id;
+END$$
+
+-- Procedure: create a new post in a group for a user who is a member of that group.
+CREATE PROCEDURE sp_create_group_post(
+    IN p_group_id INT,
+    IN p_user_id INT,
+    IN p_content TEXT
+)
+BEGIN
+    INSERT INTO group_posts (group_id, user_id, content)
+    SELECT p_group_id, p_user_id, p_content
+    FROM group_memberships gm
+    WHERE gm.group_id = p_group_id
+      AND gm.user_id = p_user_id
+    LIMIT 1;
+END$$
+
+-- Procedure: list recent posts for a group with poster usernames.
+CREATE PROCEDURE sp_get_group_posts(IN p_group_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        gp.post_id,
+        gp.group_id,
+        gp.user_id,
+        u.username,
+        gp.content,
+        gp.created_at
+    FROM group_posts gp
+    JOIN users u ON u.user_id = gp.user_id
+    WHERE gp.group_id = p_group_id
+    ORDER BY gp.created_at DESC, gp.post_id DESC
+    LIMIT p_limit;
 END$$
 
 DELIMITER ;

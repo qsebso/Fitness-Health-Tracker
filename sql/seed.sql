@@ -12,7 +12,9 @@ VALUES
     ('mia_runner', 'mia.runner@example.com', 'hash_mia', 'Mia', 'Lopez', '2001-09-03', 'female', 65),
     ('sam_strength', 'sam.strength@example.com', 'hash_sam', 'Sam', 'Patel', '1995-01-28', 'other', 70),
     ('jordan_cycle', 'jordan.cycle@example.com', 'hash_jordan', 'Jordan', 'Kim', '1992-06-17', 'male', 68),
-    ('ava_balance', 'ava.balance@example.com', 'hash_ava', 'Ava', 'Nguyen', '1999-11-22', 'female', 64);
+    ('ava_balance', 'ava.balance@example.com', 'hash_ava', 'Ava', 'Nguyen', '1999-11-22', 'female', 64),
+    -- Development seed account requested for UI testing.
+    ('quinn', 'quinn@example.com', 'quinn', 'Quinn', 'Tester', '1999-05-15', 'other', 69);
 
 INSERT INTO exercise_types (name, category, muscle_group, calories_per_hour)
 VALUES
@@ -95,18 +97,26 @@ VALUES
 
 INSERT INTO support_groups (group_name, description, created_by_user_id)
 VALUES
-    ('Gym Friends', 'friends', 1),
-    ('Family Wellness', 'family', 2),
+    ('Progress Crew', 'poster board group with sample posts', 6),
+    ('Family Wellness', 'group without posts for empty-state testing', 2),
     ('Morning Accountability', 'accountability', 3);
 
 INSERT INTO group_memberships (group_id, user_id, role)
 VALUES
-    (1, 1, 'owner'),
+    (1, 6, 'owner'),
+    (1, 1, 'member'),
     (1, 2, 'member'),
     (1, 3, 'member'),
     (2, 2, 'owner'),
+    (2, 6, 'member'),
     (2, 5, 'member'),
     (3, 3, 'owner'),
     (3, 1, 'member'),
     (3, 4, 'member');
+
+INSERT INTO group_posts (group_id, user_id, content, created_at)
+VALUES
+    (1, 6, 'Just lost 5 lbs this month. Small steps, big wins!', '2026-03-15 08:10:00'),
+    (1, 1, 'Huge congrats Quinn! Keep it going.', '2026-03-15 08:20:00'),
+    (1, 2, 'Nice work! I finally hit 12k steps today too.', '2026-03-15 09:05:00');
 
