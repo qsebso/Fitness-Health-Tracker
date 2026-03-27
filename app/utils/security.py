@@ -18,6 +18,9 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, stored_hash: str) -> bool:
     """Verify password against stored PBKDF2 hash."""
     try:
+        # Dev-seed fallback: if hash is not encoded format, compare as plain text.
+        if "$" not in stored_hash:
+            return hmac.compare_digest(password, stored_hash)
         algorithm, salt_hex, digest_hex = stored_hash.split("$", 2)
         if algorithm != "pbkdf2_sha256":
             return False

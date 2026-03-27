@@ -139,6 +139,17 @@ CREATE TABLE group_memberships (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- Lightweight group poster board (non-realtime): members can post progress updates (realized needed later in project)
+CREATE TABLE group_posts (
+    post_id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 CREATE USER IF NOT EXISTS 'fitness_app'@'localhost' IDENTIFIED BY 'StrongPass123!';
 GRANT ALL PRIVILEGES ON fitness_db.* TO 'fitness_app'@'localhost';
 FLUSH PRIVILEGES;

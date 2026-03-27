@@ -6,6 +6,88 @@ Information inside: Placeholder rendering for group metadata and member list.
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Group Detail</h2>
-  <p>TODO: Render selected group info and members here.</p>
+  <h2>{{ group.group_name }}</h2>
+  <p class="muted">Your role: <strong>{{ group.role }}</strong></p>
+
+  {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+  {% endif %}
+
+  {% if is_owner %}
+    <section class="form-card">
+      <h3>Add Member</h3>
+      <form method="post" action="/groups/{{ group.group_id }}/members" class="auth-form">
+        <label>
+          Username
+          <input type="text" name="username" required />
+        </label>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="submit">Add Member</button>
+          <a class="btn btn-secondary" href="/groups">Back to Groups</a>
+        </div>
+      </form>
+    </section>
+  {% else %}
+    <p><a href="/groups">Back to Groups</a></p>
+  {% endif %}
+
+  <h3>Poster Board</h3>
+  <section class="form-card">
+    <form method="post" action="/groups/{{ group.group_id }}/posts" class="auth-form">
+      <label>
+        Share an update
+        <input type="text" name="content" maxlength="500" placeholder="Just lost 5 lbs this month..." required />
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Post</button>
+      </div>
+    </form>
+  </section>
+
+  {% if posts %}
+    <ul class="post-list">
+      {% for p in posts %}
+        <li class="post-card">
+          <div class="post-meta"><strong>{{ p.username }}</strong> · {{ p.created_at }}</div>
+          <p class="post-content">{{ p.content }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts yet in this group.</p>
+  {% endif %}
+
+  <h3>Members</h3>
+  {% if members %}
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          {% if is_owner %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+          <tr>
+            <td>{{ m.username }}</td>
+            <td>{{ m.role }}</td>
+            {% if is_owner %}
+              <td>
+                {% if m.role != "owner" %}
+                  <form method="post" action="/groups/{{ group.group_id }}/members/{{ m.user_id }}/remove">
+                    <button class="btn btn-secondary" type="submit">Remove</button>
+                  </form>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No members found.</p>
+  {% endif %}
 {% endblock %}
