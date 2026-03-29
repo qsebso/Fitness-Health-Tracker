@@ -1,12 +1,46 @@
-<!--
-Used for: Daily metrics logging UI.
-Information inside: Placeholder form/table for daily metric records.
--->
-
 {% extends "base.html" %}
-
 {% block content %}
-  <h2>Daily Metrics</h2>
-  <p>TODO: Add daily metric create/update form.</p>
-{% endblock %}
+<div style="padding: 20px;">
+    <h1>Daily Metrics</h1>
 
+    <h2>Log Today's Metrics</h2>
+    <form method="post" action="/metrics/add">
+        <p>Date: <input type="date" name="record_date" required></p>
+        <p>Weight (lbs): <input type="number" name="weight_lbs" step="0.01" required></p>
+        <p>Steps: <input type="number" name="steps" required></p>
+        <p>Sleep Hours: <input type="number" name="sleep_hours" step="0.01" required></p>
+        <p>Water Intake (cups): <input type="number" name="water_intake_cups" step="0.01" required></p>
+        <button type="submit">Save Metrics</button>
+    </form>
+
+    <h2>Your Daily Metrics</h2>
+    {% if metrics %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Date</th>
+            <th>Weight (lbs)</th>
+            <th>Steps</th>
+            <th>Sleep (hrs)</th>
+            <th>Water (cups)</th>
+            <th>Action</th>
+        </tr>
+        {% for metric in metrics %}
+        <tr>
+            <td>{{ metric.record_date }}</td>
+            <td>{{ metric.weight_lbs }}</td>
+            <td>{{ metric.steps }}</td>
+            <td>{{ metric.sleep_hours }}</td>
+            <td>{{ metric.water_intake_cups }}</td>
+            <td>
+                <form method="post" action="/metrics/delete/{{ metric.metric_id }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No metrics logged yet!</p>
+    {% endif %}
+</div>
+{% endblock %}

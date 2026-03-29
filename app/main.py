@@ -11,6 +11,7 @@ from app.routers.checkins import router as checkins_router
 from app.routers.nutrition import router as nutrition_router
 from app.routers.workouts import router as workouts_router
 from app.routers.goals import router as goals_router
+from app.routers.metrics import router as metrics_router
 
 app = FastAPI(title="Fitness Trend Tracking System")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
@@ -23,6 +24,7 @@ app.include_router(achievements_router)
 app.include_router(nutrition_router)
 app.include_router(workouts_router)
 app.include_router(goals_router)
+app.include_router(metrics_router)
 
 @app.get("/")
 def home(request: Request):
