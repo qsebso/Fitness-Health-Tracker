@@ -1,12 +1,53 @@
-<!--
-Used for: Nutrition logging UI.
-Information inside: Placeholder form/table for meals or nutrition entries.
--->
-
 {% extends "base.html" %}
-
 {% block content %}
-  <h2>Nutrition</h2>
-  <p>TODO: Add nutrition entry form.</p>
-{% endblock %}
+<div style="padding: 20px;">
+    <h1>Nutrition</h1>
 
+    <h2>Log a Meal</h2>
+    <form method="post" action="/nutrition/add">
+        <p>Date: <input type="date" name="log_date" required></p>
+        <p>Meal Type:
+            <select name="meal_type" required>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+            </select>
+        </p>
+        <p>Food Item: <input type="text" name="food_item" required></p>
+        <p>Calories: <input type="number" name="calories" required></p>
+        <p>Protein (g): <input type="number" name="protein_g" step="0.01"></p>
+        <p>Carbs (g): <input type="number" name="carbs_g" step="0.01"></p>
+        <p>Fat (g): <input type="number" name="fat_g" step="0.01"></p>
+        <button type="submit">Add Entry</button>
+    </form>
+
+    <h2>Your Nutrition Log</h2>
+    {% if logs %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Date</th><th>Meal</th><th>Food</th>
+            <th>Calories</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Action</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.log_date }}</td>
+            <td>{{ log.meal_type }}</td>
+            <td>{{ log.food_item }}</td>
+            <td>{{ log.calories }}</td>
+            <td>{{ log.protein_g }}</td>
+            <td>{{ log.carbs_g }}</td>
+            <td>{{ log.fat_g }}</td>
+            <td>
+                <form method="post" action="/nutrition/delete/{{ log.nutrition_id }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No nutrition entries yet!</p>
+    {% endif %}
+</div>
+{% endblock %}

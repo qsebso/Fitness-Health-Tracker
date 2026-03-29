@@ -40,7 +40,8 @@ async def add_nutrition(
 
 @router.post("/nutrition/delete/{nutrition_id}")
 async def delete_nutrition(request: Request, nutrition_id: int):
-    NutritionService.delete(nutrition_id)
+    user_id = request.session.get("user_id")
+    NutritionService.delete(nutrition_id, user_id)
     return RedirectResponse(url="/nutrition", status_code=303)
 
 
