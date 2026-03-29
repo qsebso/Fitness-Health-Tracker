@@ -1,12 +1,70 @@
-<!--
-Used for: Goals management UI.
-Information inside: Placeholder list/form for goals and goal status.
--->
-
 {% extends "base.html" %}
-
 {% block content %}
-  <h2>Goals</h2>
-  <p>TODO: Add goal create/update UI.</p>
-{% endblock %}
+<div style="padding: 20px;">
+    <h1>Goals</h1>
 
+    <h2>Add a Goal</h2>
+    <form method="post" action="/goals/add">
+        <p>Goal Type:
+            <select name="goal_type" required>
+                <option value="weight_loss">Weight Loss</option>
+                <option value="weight_gain">Weight Gain</option>
+                <option value="muscle_gain">Muscle Gain</option>
+                <option value="endurance">Endurance</option>
+            </select>
+        </p>
+        <p>Target Value: <input type="number" name="target_value" step="0.01" required></p>
+        <p>Start Date: <input type="date" name="start_date" required></p>
+        <p>End Date: <input type="date" name="end_date"></p>
+        <p>Status:
+            <select name="status" required>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="completed">Completed</option>
+            </select>
+        </p>
+        <button type="submit">Add Goal</button>
+    </form>
+
+    <h2>Your Goals</h2>
+    {% if goals %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Type</th>
+            <th>Target</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Update Status</th>
+            <th>Action</th>
+        </tr>
+        {% for goal in goals %}
+        <tr>
+            <td>{{ goal.goal_type }}</td>
+            <td>{{ goal.target_value }}</td>
+            <td>{{ goal.start_date }}</td>
+            <td>{{ goal.end_date }}</td>
+            <td>{{ goal.status }}</td>
+            <td>
+                <form method="post" action="/goals/update-status/{{ goal.goal_id }}">
+                    <select name="status">
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+            <td>
+                <form method="post" action="/goals/delete/{{ goal.goal_id }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No goals yet!</p>
+    {% endif %}
+</div>
+{% endblock %}
