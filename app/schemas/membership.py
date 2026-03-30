@@ -1,6 +1,6 @@
 """
 Used for: Group membership schema definitions.
-Information inside: Placeholder Pydantic models for membership add/remove/list operations.
+Information inside: Pydantic models for group member rows and add/remove operations.
 """
 
 from pydantic import BaseModel, Field

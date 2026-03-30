@@ -1,6 +1,6 @@
 """
 Used for: Support group routes.
-Information inside: Placeholder endpoints for creating groups and listing group details.
+Information inside: Create groups, list membership, owner add/remove members (stored procedures).
 """
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -26,7 +26,7 @@ def _user_group_map(user_id: int) -> dict[int, dict]:
 @router.get("/groups")
 def groups_page(request: Request, current_user: dict = Depends(get_current_user)):
     error = None
-    groups = []
+    groups: list = []
     try:
         groups = GroupService.list_user_groups(current_user["user_id"])
     except MySQLError as exc:
@@ -63,7 +63,10 @@ def create_group(
         )
         return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
     except (ValueError, MySQLError) as exc:
-        groups = GroupService.list_user_groups(current_user["user_id"])
+        try:
+            groups = GroupService.list_user_groups(current_user["user_id"])
+        except MySQLError:
+            groups = []
         return templates.TemplateResponse(
             request=request,
             name="groups.html",
@@ -139,9 +142,15 @@ def add_group_member(
         return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
     except (ValueError, MySQLError) as exc:
         group_map = _user_group_map(current_user["user_id"])
-        current_group = group_map.get(group_id, {"group_id": group_id, "group_name": "Unknown Group", "role": "member"})
-        members = GroupService.list_group_members(group_id)
-        posts = GroupService.list_group_posts(group_id, limit=50)
+        current_group = group_map.get(
+            group_id, {"group_id": group_id, "group_name": "Unknown Group", "role": "member"}
+        )
+        try:
+            members = GroupService.list_group_members(group_id)
+            posts = GroupService.list_group_posts(group_id, limit=50)
+        except MySQLError:
+            members = []
+            posts = []
         return templates.TemplateResponse(
             request=request,
             name="group_detail.html",
@@ -158,44 +167,44 @@ def add_group_member(
         )
 
 
-@router.post("/groups/{group_id}/members/{user_id}/remove")
-def remove_group_member(group_id: int, user_id: int, current_user: dict = Depends(get_current_user)):
-    group_map = _user_group_map(current_user["user_id"])
-    current_group = group_map.get(group_id)
-    if not current_group or current_group["role"] != "owner":
-        return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
-
-    # Prevent deleting the acting owner from the group.
-    if user_id == current_user["user_id"]:
-        return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
-
-    try:
-        GroupService.remove_member(group_id=group_id, user_id=user_id)
-    except MySQLError:
-        pass
-    return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
-
-
 @router.post("/groups/{group_id}/posts")
 def create_group_post(
     group_id: int,
     content: str = Form(...),
     current_user: dict = Depends(get_current_user),
 ):
-    group_map = _user_group_map(current_user["user_id"])
+    uid = int(current_user["user_id"])
+    group_map = _user_group_map(uid)
     if group_id not in group_map:
         return RedirectResponse(url="/groups", status_code=status.HTTP_303_SEE_OTHER)
 
-    trimmed = content.strip()
+    trimmed = (content or "").strip()
     if not trimmed:
         return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
 
     try:
-        GroupService.create_group_post(
-            group_id=group_id,
-            user_id=current_user["user_id"],
-            content=trimmed,
-        )
+        GroupService.create_group_post(group_id=group_id, user_id=uid, content=trimmed)
+    except MySQLError:
+        pass
+    return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/groups/{group_id}/members/{user_id}/remove")
+def remove_group_member(
+    group_id: int,
+    user_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    group_map = _user_group_map(current_user["user_id"])
+    current_group = group_map.get(group_id)
+    if not current_group or current_group["role"] != "owner":
+        return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+    if user_id == int(current_user["user_id"]):
+        return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        GroupService.remove_member(group_id=group_id, user_id=user_id)
     except MySQLError:
         pass
     return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)

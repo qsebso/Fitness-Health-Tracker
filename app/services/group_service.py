@@ -1,6 +1,6 @@
 """
 Used for: Support group business logic.
-Information inside: Placeholder service functions for create/list/get support groups.
+Information inside: Stored-procedure-backed create/list/membership for support groups.
 """
 
 from typing import Any
@@ -9,7 +9,7 @@ from app.db import get_db_connection
 
 
 class GroupService:
-    """Stored-procedure-backed operations for support groups and memberships."""
+    """Operations for support groups and memberships."""
 
     @staticmethod
     def list_user_groups(user_id: int) -> list[dict[str, Any]]:
@@ -17,11 +17,9 @@ class GroupService:
         try:
             cursor = conn.cursor(dictionary=True)
             cursor.callproc("sp_get_user_groups", (user_id,))
-            rows: list[dict[str, Any]] = []
             for result in cursor.stored_results():
-                rows = list(result.fetchall())
-                break
-            return rows
+                return list(result.fetchall())
+            return []
         finally:
             conn.close()
 
@@ -52,11 +50,9 @@ class GroupService:
         try:
             cursor = conn.cursor(dictionary=True)
             cursor.callproc("sp_get_group_members", (group_id,))
-            rows: list[dict[str, Any]] = []
             for result in cursor.stored_results():
-                rows = list(result.fetchall())
-                break
-            return rows
+                return list(result.fetchall())
+            return []
         finally:
             conn.close()
 
@@ -101,11 +97,9 @@ class GroupService:
         try:
             cursor = conn.cursor(dictionary=True)
             cursor.callproc("sp_get_group_posts", (group_id, limit))
-            rows: list[dict[str, Any]] = []
             for result in cursor.stored_results():
-                rows = list(result.fetchall())
-                break
-            return rows
+                return list(result.fetchall())
+            return []
         finally:
             conn.close()
 
