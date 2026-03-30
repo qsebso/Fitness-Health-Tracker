@@ -2,19 +2,16 @@
 -- Information inside: Grouped by table. Upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+).
 -- Run after schema.sql (same database).
 
--- TODO: functions for workout calorie fill, goal progress, maybe achievement progress
--- TODO: dashboard creation and refresh but manybe use a view for the dashboard
-
 USE fitness_db;
 
 -- =============================================================================
 -- DROP ALL (idempotent before CREATE). Trailing comment = quick reference for that object.
 -- =============================================================================
 DROP PROCEDURE IF EXISTS sp_register_user;                        -- INSERT full user row; SELECT new user_id
-DROP PROCEDURE IF EXISTS sp_get_user_auth_by_username;            -- SELECT login fields incl. password_hash by username
+DROP PROCEDURE IF EXISTS sp_get_user_auth_by_username;            -- SELECT login fields incl. password by username
 DROP PROCEDURE IF EXISTS sp_get_user_by_id;                       -- SELECT profile row by user_id
 DROP PROCEDURE IF EXISTS sp_update_user_profile;                  -- UPDATE name, email, gender, height, DOB for one user
-DROP PROCEDURE IF EXISTS sp_update_user_password_hash;            -- UPDATE password_hash for one user
+DROP PROCEDURE IF EXISTS sp_update_user_password;                  -- UPDATE password for one user
 DROP PROCEDURE IF EXISTS sp_upsert_exercise_type;                 -- INSERT or UPDATE exercise_types by unique name
 DROP PROCEDURE IF EXISTS sp_list_exercise_types;                  -- SELECT all exercise_types (ordered)
 DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;                  -- INSERT/UPSERT daily_metrics per user+date
@@ -35,6 +32,7 @@ DROP PROCEDURE IF EXISTS sp_update_goal_status;                   -- UPDATE goal
 DROP PROCEDURE IF EXISTS sp_update_goal;                          -- UPDATE full goal row (goal_id + user_id)
 DROP PROCEDURE IF EXISTS sp_get_user_goals;                       -- SELECT goals for a user
 DROP PROCEDURE IF EXISTS sp_delete_goal;                          -- DELETE goal row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_get_user_progress_snapshots;            -- SELECT recent progress_snapshots for a user
 DROP PROCEDURE IF EXISTS sp_insert_achievement;                   -- legacy name; replaced by sp_grant_user_achievement
 DROP PROCEDURE IF EXISTS sp_grant_user_achievement;               -- INSERT user_achievements if not already earned (by def id)
 DROP PROCEDURE IF EXISTS sp_grant_user_achievement_by_code;       -- Same, resolve achievement_definitions.code first
@@ -78,11 +76,11 @@ BEGIN
     END IF;
 END$$
 
--- Procedure: register a new user (app supplies password_hash); returns new user_id via SELECT.
+-- Procedure: register a new user (app supplies plain password for demo/grading); returns new user_id via SELECT.
 CREATE PROCEDURE sp_register_user(
     IN p_username VARCHAR(255),
     IN p_email VARCHAR(255),
-    IN p_password_hash VARCHAR(255),
+    IN p_password VARCHAR(255),
     IN p_first_name VARCHAR(255),
     IN p_last_name VARCHAR(255),
     IN p_date_of_birth DATE,
@@ -91,18 +89,18 @@ CREATE PROCEDURE sp_register_user(
 )
 BEGIN
     INSERT INTO users (
-        username, email, password_hash, first_name, last_name, date_of_birth, gender, height_inches
+        username, email, password, first_name, last_name, date_of_birth, gender, height_inches
     )
     VALUES (
-        p_username, p_email, p_password_hash, p_first_name, p_last_name, p_date_of_birth, p_gender, p_height_inches
+        p_username, p_email, p_password, p_first_name, p_last_name, p_date_of_birth, p_gender, p_height_inches
     );
     SELECT LAST_INSERT_ID() AS user_id;
 END$$
 
--- Procedure: fetch row for login (includes password_hash for app-side verify).
+-- Procedure: fetch row for login (includes password for app-side compare).
 CREATE PROCEDURE sp_get_user_auth_by_username(IN p_username VARCHAR(255))
 BEGIN
-    SELECT user_id, username, email, password_hash
+    SELECT user_id, username, email, password
     FROM users
     WHERE username = p_username;
 END$$
@@ -137,14 +135,14 @@ BEGIN
     WHERE user_id = p_user_id;
 END$$
 
--- Procedure: set password_hash after app hashes the new password.
-CREATE PROCEDURE sp_update_user_password_hash(
+-- Procedure: set password (plain for demo/grading).
+CREATE PROCEDURE sp_update_user_password(
     IN p_user_id INT,
-    IN p_password_hash VARCHAR(255)
+    IN p_password VARCHAR(255)
 )
 BEGIN
     UPDATE users
-    SET password_hash = p_password_hash
+    SET password = p_password
     WHERE user_id = p_user_id;
 END$$
 
@@ -499,6 +497,25 @@ BEGIN
       AND user_id = p_user_id;
 END$$
 
+-- Procedure: list recent progress_snapshots for dashboard (newest first).
+CREATE PROCEDURE sp_get_user_progress_snapshots(IN p_user_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        snapshot_id,
+        user_id,
+        snapshot_date,
+        avg_weight_lbs_7d,
+        total_workouts_7d,
+        avg_steps_7d,
+        avg_sleep_hours_7d,
+        avg_protein_g_7d,
+        created_at
+    FROM progress_snapshots
+    WHERE user_id = p_user_id
+    ORDER BY snapshot_date DESC
+    LIMIT p_limit;
+END$$
+
 DELIMITER ;
 
 -- =============================================================================
@@ -673,6 +690,6 @@ DELIMITER ;
 -- Optional triggers/functions (comments only): workout calorie fill, goal date guard, snapshot refresh hooks
 
 -- NOTES
--- - Password verification stays in the app; DB stores password_hash only.
+-- - Password verification stays in the app; DB stores plain password (demo/grading).
 -- - Prefer CHECK/FK in schema.sql; procedures enforce ownership (user_id on UPDATE/DELETE where applicable).
 -- - sp_update_goal_status now requires p_user_id so status changes cannot target another user's goal.

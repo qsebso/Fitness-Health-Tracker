@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
+from mysql.connector import Error as MySQLError
 from starlette import status
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
@@ -13,6 +14,8 @@ from app.routers.workouts import router as workouts_router
 from app.routers.goals import router as goals_router
 from app.routers.metrics import router as metrics_router
 from app.routers.groups import router as groups_router
+from app.services.achievement_rules import evaluate_and_grant
+from app.services.dashboard_service import DashboardService
 
 app = FastAPI(title="Fitness Trend Tracking System")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
@@ -32,8 +35,24 @@ app.include_router(groups_router)
 def home(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    uid = int(request.session["user_id"])
+    dashboard: dict = {}
+    dashboard_error = None
+    try:
+        evaluate_and_grant(uid)
+    except Exception:
+        pass
+    try:
+        dashboard = DashboardService.build(uid)
+    except MySQLError as exc:
+        dashboard_error = exc.msg
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"request": request, "title": "Dashboard"},
+        context={
+            "request": request,
+            "title": "Dashboard",
+            "dashboard": dashboard,
+            "dashboard_error": dashboard_error,
+        },
     )

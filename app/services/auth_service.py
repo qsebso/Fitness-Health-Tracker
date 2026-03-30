@@ -7,7 +7,6 @@ from datetime import date
 from typing import Optional
 
 from app.db import get_db_connection
-from app.utils.security import hash_password, verify_password
 
 
 class AuthService:
@@ -27,13 +26,12 @@ class AuthService:
         conn = get_db_connection()
         try:
             cursor = conn.cursor()
-            password_hash = hash_password(password)
             cursor.callproc(
                 "sp_register_user",
                 (
                     username,
                     email,
-                    password_hash,
+                    password,
                     first_name,
                     last_name,
                     date_of_birth,
@@ -65,7 +63,8 @@ class AuthService:
                 break
             if not user:
                 return None
-            if not verify_password(password, user["password_hash"]):
+            stored = user.get("password")
+            if stored is None or password != str(stored):
                 return None
             return {
                 "user_id": int(user["user_id"]),
