@@ -9,6 +9,11 @@ from typing import Any
 from app.db import get_db_connection
 
 
+def _consume_procedure_results(cursor) -> None:
+    for result in cursor.stored_results():
+        result.fetchall()
+
+
 class CheckinService:
     """Stored-procedure-backed operations for daily check-ins."""
 
@@ -23,7 +28,7 @@ class CheckinService:
     ) -> None:
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             cursor.callproc(
                 "sp_upsert_daily_checkin",
                 (
@@ -35,6 +40,7 @@ class CheckinService:
                     notes,
                 ),
             )
+            _consume_procedure_results(cursor)
             conn.commit()
         finally:
             conn.close()

@@ -174,4 +174,5 @@ VALUES ('past_ok', 'past_ok@example.com', 'x', 'A', 'B', '2000-01-01', 'other', 
 -- EXPECTED: succeeds — past or today is allowed (use a unique username/email).
 
 SELECT * FROM users;
+SELECT * FROM nutrition_logs;
 
