@@ -16,18 +16,25 @@ DROP PROCEDURE IF EXISTS sp_get_user_by_id;                       -- SELECT prof
 DROP PROCEDURE IF EXISTS sp_update_user_profile;                  -- UPDATE name, email, gender, height, DOB for one user
 DROP PROCEDURE IF EXISTS sp_update_user_password_hash;            -- UPDATE password_hash for one user
 DROP PROCEDURE IF EXISTS sp_upsert_exercise_type;                 -- INSERT or UPDATE exercise_types by unique name
+DROP PROCEDURE IF EXISTS sp_list_exercise_types;                  -- SELECT all exercise_types (ordered)
 DROP PROCEDURE IF EXISTS sp_upsert_daily_metric;                  -- INSERT/UPSERT daily_metrics per user+date
+DROP PROCEDURE IF EXISTS sp_get_user_daily_metrics;               -- SELECT recent daily_metrics for a user
+DROP PROCEDURE IF EXISTS sp_delete_daily_metric;                  -- DELETE daily_metrics row (scoped by user_id)
 DROP PROCEDURE IF EXISTS sp_upsert_daily_checkin;                 -- INSERT/UPSERT daily_checkins per user+date
 DROP PROCEDURE IF EXISTS sp_get_user_daily_checkins;             -- SELECT recent check-ins for a user
 DROP PROCEDURE IF EXISTS sp_log_nutrition_entry;                  -- INSERT nutrition_logs row
 DROP PROCEDURE IF EXISTS sp_update_nutrition_entry;               -- UPDATE nutrition row (scoped by user_id)
 DROP PROCEDURE IF EXISTS sp_delete_nutrition_entry;               -- DELETE nutrition row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_get_user_nutrition_logs;              -- SELECT recent nutrition_logs for a user
 DROP PROCEDURE IF EXISTS sp_log_workout;                          -- INSERT workout_logs row
 DROP PROCEDURE IF EXISTS sp_update_workout_log;                   -- UPDATE workout row (scoped by user_id)
 DROP PROCEDURE IF EXISTS sp_delete_workout_log;                   -- DELETE workout row (scoped by user_id)
+DROP PROCEDURE IF EXISTS sp_get_user_workout_logs;                -- SELECT recent workouts + exercise name
 DROP PROCEDURE IF EXISTS sp_create_goal;                          -- INSERT goals row
 DROP PROCEDURE IF EXISTS sp_update_goal_status;                   -- UPDATE goal status only (goal_id + user_id)
 DROP PROCEDURE IF EXISTS sp_update_goal;                          -- UPDATE full goal row (goal_id + user_id)
+DROP PROCEDURE IF EXISTS sp_get_user_goals;                       -- SELECT goals for a user
+DROP PROCEDURE IF EXISTS sp_delete_goal;                          -- DELETE goal row (scoped by user_id)
 DROP PROCEDURE IF EXISTS sp_insert_achievement;                   -- legacy name; replaced by sp_grant_user_achievement
 DROP PROCEDURE IF EXISTS sp_grant_user_achievement;               -- INSERT user_achievements if not already earned (by def id)
 DROP PROCEDURE IF EXISTS sp_grant_user_achievement_by_code;       -- Same, resolve achievement_definitions.code first
@@ -162,6 +169,14 @@ BEGIN
         calories_per_hour = new.calories_per_hour;
 END$$
 
+-- Procedure: list exercise types for dropdowns (read-only).
+CREATE PROCEDURE sp_list_exercise_types()
+BEGIN
+    SELECT exercise_id, name, category, muscle_group, calories_per_hour
+    FROM exercise_types
+    ORDER BY name;
+END$$
+
 DELIMITER ;
 
 -- =============================================================================
@@ -186,6 +201,31 @@ BEGIN
         steps = new.steps,
         sleep_hours = new.sleep_hours,
         water_intake_cups = new.water_intake_cups;
+END$$
+
+-- Procedure: list recent daily metrics for a user (newest dates first).
+CREATE PROCEDURE sp_get_user_daily_metrics(IN p_user_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        metric_id,
+        user_id,
+        record_date,
+        weight_lbs,
+        steps,
+        sleep_hours,
+        water_intake_cups
+    FROM daily_metrics
+    WHERE user_id = p_user_id
+    ORDER BY record_date DESC
+    LIMIT p_limit;
+END$$
+
+-- Procedure: delete one daily_metrics row if it belongs to the user.
+CREATE PROCEDURE sp_delete_daily_metric(IN p_metric_id INT, IN p_user_id INT)
+BEGIN
+    DELETE FROM daily_metrics
+    WHERE metric_id = p_metric_id
+      AND user_id = p_user_id;
 END$$
 
 DELIMITER ;
@@ -288,6 +328,25 @@ BEGIN
       AND user_id = p_user_id;
 END$$
 
+-- Procedure: list recent nutrition log rows for a user.
+CREATE PROCEDURE sp_get_user_nutrition_logs(IN p_user_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        nutrition_id,
+        user_id,
+        log_date,
+        meal_type,
+        food_item,
+        calories,
+        protein_g,
+        carbs_g,
+        fat_g
+    FROM nutrition_logs
+    WHERE user_id = p_user_id
+    ORDER BY log_date DESC, nutrition_id DESC
+    LIMIT p_limit;
+END$$
+
 DELIMITER ;
 
 -- =============================================================================
@@ -337,6 +396,25 @@ BEGIN
     DELETE FROM workout_logs
     WHERE workout_id = p_workout_id
       AND user_id = p_user_id;
+END$$
+
+-- Procedure: list recent workouts for a user with exercise name (for UI).
+CREATE PROCEDURE sp_get_user_workout_logs(IN p_user_id INT, IN p_limit INT)
+BEGIN
+    SELECT
+        w.workout_id,
+        w.user_id,
+        w.exercise_id,
+        w.log_date,
+        w.duration_minutes,
+        w.calories_burned,
+        w.notes,
+        e.name AS exercise_name
+    FROM workout_logs w
+    JOIN exercise_types e ON e.exercise_id = w.exercise_id
+    WHERE w.user_id = p_user_id
+    ORDER BY w.log_date DESC, w.workout_id DESC
+    LIMIT p_limit;
 END$$
 
 DELIMITER ;
@@ -391,6 +469,30 @@ BEGIN
         start_date = p_start_date,
         end_date = p_end_date,
         status = p_status
+    WHERE goal_id = p_goal_id
+      AND user_id = p_user_id;
+END$$
+
+-- Procedure: list goals for a user (newest start_date first).
+CREATE PROCEDURE sp_get_user_goals(IN p_user_id INT)
+BEGIN
+    SELECT
+        goal_id,
+        user_id,
+        goal_type,
+        target_value,
+        start_date,
+        end_date,
+        status
+    FROM goals
+    WHERE user_id = p_user_id
+    ORDER BY start_date DESC, goal_id DESC;
+END$$
+
+-- Procedure: delete a goal row if it belongs to the user.
+CREATE PROCEDURE sp_delete_goal(IN p_goal_id INT, IN p_user_id INT)
+BEGIN
+    DELETE FROM goals
     WHERE goal_id = p_goal_id
       AND user_id = p_user_id;
 END$$

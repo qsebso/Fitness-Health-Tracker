@@ -1,48 +1,98 @@
+"""
+Used for: Goal business logic.
+Information inside: Goal CRUD via stored procedures only (no ad-hoc SQL).
+"""
+
+from datetime import date
+from decimal import Decimal
+from typing import Any
+
 from app.db import get_db_connection
 
+
 class GoalService:
+    """Stored-procedure-backed goal operations."""
 
     @staticmethod
-    def get_all(user_id: int):
+    def list_goals(user_id: int) -> list[dict[str, Any]]:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            "SELECT * FROM goals WHERE user_id = %s ORDER BY start_date DESC",
-            (user_id,)
-        )
-        goals = cursor.fetchall()
-        conn.close()
-        return goals
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.callproc("sp_get_user_goals", (user_id,))
+            for result in cursor.stored_results():
+                return list(result.fetchall())
+            return []
+        finally:
+            conn.close()
 
     @staticmethod
-    def add(user_id, goal_type, target_value, start_date, end_date, status):
+    def create_goal(
+        user_id: int,
+        goal_type: str,
+        target_value: Decimal,
+        start_date: date,
+        end_date: date | None,
+        status: str,
+    ) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc(
-            "sp_create_goal",
-            (user_id, goal_type, target_value, start_date, end_date or None, status)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_create_goal",
+                (user_id, goal_type, target_value, start_date, end_date, status),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
-    def update_status(goal_id, user_id, status):
+    def update_status(goal_id: int, user_id: int, status: str) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc(
-            "sp_update_goal_status",
-            (goal_id, user_id, status)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_update_goal_status",
+                (goal_id, user_id, status),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
-    def delete(goal_id: int, user_id: int):
+    def update_goal(
+        goal_id: int,
+        user_id: int,
+        goal_type: str,
+        target_value: Decimal,
+        start_date: date,
+        end_date: date | None,
+        status: str,
+    ) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "DELETE FROM goals WHERE goal_id = %s AND user_id = %s",
-            (goal_id, user_id)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_update_goal",
+                (
+                    goal_id,
+                    user_id,
+                    goal_type,
+                    target_value,
+                    start_date,
+                    end_date,
+                    status,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_goal(goal_id: int, user_id: int) -> None:
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc("sp_delete_goal", (goal_id, user_id))
+            conn.commit()
+        finally:
+            conn.close()

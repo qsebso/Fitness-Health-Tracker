@@ -3,6 +3,10 @@
 <div style="padding: 20px;">
     <h1>Daily Metrics</h1>
 
+    {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+    {% endif %}
+
     <h2>Log Today's Metrics</h2>
     <form method="post" action="/metrics/add">
         <p>Date: <input type="date" name="record_date" required></p>

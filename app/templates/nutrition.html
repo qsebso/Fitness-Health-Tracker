@@ -3,6 +3,10 @@
 <div style="padding: 20px;">
     <h1>Nutrition</h1>
 
+    {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+    {% endif %}
+
     <h2>Log a Meal</h2>
     <form method="post" action="/nutrition/add">
         <p>Date: <input type="date" name="log_date" required></p>

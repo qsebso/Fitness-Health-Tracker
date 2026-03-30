@@ -3,6 +3,10 @@
 <div style="padding: 20px;">
     <h1>Goals</h1>
 
+    {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+    {% endif %}
+
     <h2>Add a Goal</h2>
     <form method="post" action="/goals/add">
         <p>Goal Type:

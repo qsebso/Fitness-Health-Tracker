@@ -1,37 +1,63 @@
+"""
+Used for: Daily metrics business logic.
+Information inside: Daily metrics via stored procedures only (no ad-hoc SQL).
+"""
+
+from datetime import date
+from decimal import Decimal
+from typing import Any
+
 from app.db import get_db_connection
 
+
 class MetricService:
+    """Stored-procedure-backed daily_metrics operations."""
 
     @staticmethod
-    def get_all(user_id: int):
+    def list_metrics(user_id: int, limit: int = 100) -> list[dict[str, Any]]:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            "SELECT * FROM daily_metrics WHERE user_id = %s ORDER BY record_date DESC",
-            (user_id,)
-        )
-        metrics = cursor.fetchall()
-        conn.close()
-        return metrics
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.callproc("sp_get_user_daily_metrics", (user_id, limit))
+            for result in cursor.stored_results():
+                return list(result.fetchall())
+            return []
+        finally:
+            conn.close()
 
     @staticmethod
-    def add(user_id, record_date, weight_lbs, steps, sleep_hours, water_intake_cups):
+    def upsert_metric(
+        user_id: int,
+        record_date: date,
+        weight_lbs: Decimal,
+        steps: int,
+        sleep_hours: Decimal,
+        water_intake_cups: Decimal,
+    ) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc(
-            "sp_upsert_daily_metric",
-            (user_id, record_date, weight_lbs, steps, sleep_hours, water_intake_cups)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_upsert_daily_metric",
+                (
+                    user_id,
+                    record_date,
+                    weight_lbs,
+                    steps,
+                    sleep_hours,
+                    water_intake_cups,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
-    def delete(metric_id: int, user_id: int):
+    def delete_metric(metric_id: int, user_id: int) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "DELETE FROM daily_metrics WHERE metric_id = %s AND user_id = %s",
-            (metric_id, user_id)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc("sp_delete_daily_metric", (metric_id, user_id))
+            conn.commit()
+        finally:
+            conn.close()

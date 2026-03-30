@@ -3,6 +3,10 @@
 <div style="padding: 20px;">
     <h1>Workouts</h1>
 
+    {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+    {% endif %}
+
     <h2>Log a Workout</h2>
     <form method="post" action="/workouts/add">
         <p>Exercise:

@@ -1,51 +1,104 @@
+"""
+Used for: Workout business logic.
+Information inside: Workout logging via stored procedures only (no ad-hoc SQL).
+"""
+
+from datetime import datetime
+from decimal import Decimal
+from typing import Any
+
 from app.db import get_db_connection
 
+
 class WorkoutService:
+    """Stored-procedure-backed workout log operations."""
 
     @staticmethod
-    def get_all(user_id: int):
+    def list_exercise_types() -> list[dict[str, Any]]:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            """SELECT w.*, e.name as exercise_name 
-               FROM workout_logs w 
-               JOIN exercise_types e ON w.exercise_id = e.exercise_id
-               WHERE w.user_id = %s 
-               ORDER BY w.log_date DESC""",
-            (user_id,)
-        )
-        logs = cursor.fetchall()
-        conn.close()
-        return logs
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.callproc("sp_list_exercise_types", ())
+            for result in cursor.stored_results():
+                return list(result.fetchall())
+            return []
+        finally:
+            conn.close()
 
     @staticmethod
-    def get_exercises():
+    def list_logs(user_id: int, limit: int = 100) -> list[dict[str, Any]]:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM exercise_types ORDER BY name")
-        exercises = cursor.fetchall()
-        conn.close()
-        return exercises
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.callproc("sp_get_user_workout_logs", (user_id, limit))
+            for result in cursor.stored_results():
+                return list(result.fetchall())
+            return []
+        finally:
+            conn.close()
 
     @staticmethod
-    def add(user_id, exercise_id, log_date, duration_minutes, calories_burned, notes):
+    def log_workout(
+        user_id: int,
+        exercise_id: int,
+        log_at: datetime,
+        duration_minutes: int,
+        calories_burned: Decimal | None,
+        notes: str | None,
+    ) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc(
-            "sp_log_workout",
-            (user_id, exercise_id, log_date, duration_minutes, calories_burned or 0, notes or "")
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_log_workout",
+                (
+                    user_id,
+                    exercise_id,
+                    log_at,
+                    duration_minutes,
+                    calories_burned if calories_burned is not None else None,
+                    notes,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
-    def delete(workout_id: int, user_id: int):
+    def update_workout(
+        workout_id: int,
+        user_id: int,
+        exercise_id: int,
+        log_at: datetime,
+        duration_minutes: int,
+        calories_burned: Decimal | None,
+        notes: str | None,
+    ) -> None:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc(
-            "sp_delete_workout_log",
-            (workout_id, user_id)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc(
+                "sp_update_workout_log",
+                (
+                    workout_id,
+                    user_id,
+                    exercise_id,
+                    log_at,
+                    duration_minutes,
+                    calories_burned if calories_burned is not None else None,
+                    notes,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
+    @staticmethod
+    def delete_workout(workout_id: int, user_id: int) -> None:
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc("sp_delete_workout_log", (workout_id, user_id))
+            conn.commit()
+        finally:
+            conn.close()
