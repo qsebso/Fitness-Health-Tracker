@@ -9,7 +9,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from mysql.connector import Error as MySQLError
-from starlette import status
+from starlette import status as http_status
 from starlette.templating import Jinja2Templates
 
 from app.services.goal_service import GoalService
@@ -24,7 +24,7 @@ def goals_page(request: Request, current_user: dict = Depends(get_current_user))
     error = None
     goals: list = []
     try:
-        goals = GoalService.list_goals(current_user["user_id"])
+        goals = GoalService.list_goals(int(current_user["user_id"]))
     except MySQLError as exc:
         error = f"Could not load goals: {exc.msg}"
 
@@ -51,19 +51,24 @@ def add_goal(
     current_user: dict = Depends(get_current_user),
 ):
     try:
+        start_d = date.fromisoformat(start_date.strip())
         end_d = date.fromisoformat(end_date.strip()) if end_date and end_date.strip() else None
+        # Schema CHECK: end_date IS NULL OR end_date > start_date (same-day end date is rejected).
+        if end_d is not None and end_d <= start_d:
+            raise ValueError("End date must be after start date.")
+
         GoalService.create_goal(
-            user_id=current_user["user_id"],
+            user_id=int(current_user["user_id"]),
             goal_type=goal_type,
             target_value=Decimal(str(target_value)),
-            start_date=date.fromisoformat(start_date.strip()),
+            start_date=start_d,
             end_date=end_d,
             status=status,
         )
-        return RedirectResponse(url="/goals", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/goals", status_code=http_status.HTTP_303_SEE_OTHER)
     except (ValueError, MySQLError) as exc:
         try:
-            goals = GoalService.list_goals(current_user["user_id"])
+            goals = GoalService.list_goals(int(current_user["user_id"]))
         except MySQLError:
             goals = []
         return templates.TemplateResponse(
@@ -75,7 +80,7 @@ def add_goal(
                 "goals": goals,
                 "error": f"Could not add goal: {getattr(exc, 'msg', str(exc))}",
             },
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
         )
 
 
@@ -85,10 +90,10 @@ def delete_goal(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        GoalService.delete_goal(goal_id, current_user["user_id"])
+        GoalService.delete_goal(goal_id, int(current_user["user_id"]))
     except MySQLError:
         pass
-    return RedirectResponse(url="/goals", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/goals", status_code=http_status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/goals/update-status/{goal_id}")
@@ -98,7 +103,7 @@ def update_goal_status(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        GoalService.update_status(goal_id, current_user["user_id"], status)
+        GoalService.update_status(goal_id, int(current_user["user_id"]), status)
     except MySQLError:
         pass
-    return RedirectResponse(url="/goals", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/goals", status_code=http_status.HTTP_303_SEE_OTHER)

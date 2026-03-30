@@ -6,6 +6,7 @@ Information inside: Member list; owners can add/remove members.
 {% extends "base.html" %}
 
 {% block content %}
+  <p class="muted"><a href="/groups">← Back to Groups</a></p>
   <h2>{{ group.group_name }}</h2>
   <p class="muted">Your role: <strong>{{ group.role }}</strong></p>
 
@@ -27,8 +28,6 @@ Information inside: Member list; owners can add/remove members.
         </div>
       </form>
     </section>
-  {% else %}
-    <p><a href="/groups">Back to Groups</a></p>
   {% endif %}
 
   <h3>Poster Board</h3>

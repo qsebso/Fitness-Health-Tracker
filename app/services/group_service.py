@@ -90,3 +90,25 @@ class GroupService:
             return None
         finally:
             conn.close()
+
+    @staticmethod
+    def list_group_posts(group_id: int, limit: int = 50) -> list[dict[str, Any]]:
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.callproc("sp_get_group_posts", (group_id, limit))
+            for result in cursor.stored_results():
+                return list(result.fetchall())
+            return []
+        finally:
+            conn.close()
+
+    @staticmethod
+    def create_group_post(group_id: int, user_id: int, content: str) -> None:
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.callproc("sp_create_group_post", (group_id, user_id, content))
+            conn.commit()
+        finally:
+            conn.close()

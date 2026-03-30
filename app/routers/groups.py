@@ -89,6 +89,7 @@ def group_detail(group_id: int, request: Request, current_user: dict = Depends(g
             return RedirectResponse(url="/groups", status_code=status.HTTP_303_SEE_OTHER)
 
         members = GroupService.list_group_members(group_id)
+        posts = GroupService.list_group_posts(group_id, limit=50)
         return templates.TemplateResponse(
             request=request,
             name="group_detail.html",
@@ -97,6 +98,7 @@ def group_detail(group_id: int, request: Request, current_user: dict = Depends(g
                 "title": current_group["group_name"],
                 "group": current_group,
                 "members": members,
+                "posts": posts,
                 "is_owner": current_group["role"] == "owner",
                 "error": None,
             },
@@ -110,6 +112,7 @@ def group_detail(group_id: int, request: Request, current_user: dict = Depends(g
                 "title": "Group Detail",
                 "group": {"group_id": group_id, "group_name": "Unknown Group", "role": "member"},
                 "members": [],
+                "posts": [],
                 "is_owner": False,
                 "error": f"Could not load group details: {exc.msg}",
             },
@@ -144,8 +147,10 @@ def add_group_member(
         )
         try:
             members = GroupService.list_group_members(group_id)
+            posts = GroupService.list_group_posts(group_id, limit=50)
         except MySQLError:
             members = []
+            posts = []
         return templates.TemplateResponse(
             request=request,
             name="group_detail.html",
@@ -154,11 +159,34 @@ def add_group_member(
                 "title": current_group["group_name"],
                 "group": current_group,
                 "members": members,
+                "posts": posts,
                 "is_owner": current_group.get("role") == "owner",
                 "error": f"Could not add member: {getattr(exc, 'msg', str(exc))}",
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@router.post("/groups/{group_id}/posts")
+def create_group_post(
+    group_id: int,
+    content: str = Form(...),
+    current_user: dict = Depends(get_current_user),
+):
+    uid = int(current_user["user_id"])
+    group_map = _user_group_map(uid)
+    if group_id not in group_map:
+        return RedirectResponse(url="/groups", status_code=status.HTTP_303_SEE_OTHER)
+
+    trimmed = (content or "").strip()
+    if not trimmed:
+        return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        GroupService.create_group_post(group_id=group_id, user_id=uid, content=trimmed)
+    except MySQLError:
+        pass
+    return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/groups/{group_id}/members/{user_id}/remove")
@@ -172,7 +200,7 @@ def remove_group_member(
     if not current_group or current_group["role"] != "owner":
         return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
 
-    if user_id == current_user["user_id"]:
+    if user_id == int(current_user["user_id"]):
         return RedirectResponse(url=f"/groups/{group_id}", status_code=status.HTTP_303_SEE_OTHER)
 
     try:

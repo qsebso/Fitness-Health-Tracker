@@ -10,6 +10,12 @@ from typing import Any
 from app.db import get_db_connection
 
 
+def _consume_procedure_results(cursor) -> None:
+    """mysql-connector requires reading all result sets after callproc before commit/close."""
+    for result in cursor.stored_results():
+        result.fetchall()
+
+
 class GoalService:
     """Stored-procedure-backed goal operations."""
 
@@ -36,11 +42,12 @@ class GoalService:
     ) -> None:
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             cursor.callproc(
                 "sp_create_goal",
                 (user_id, goal_type, target_value, start_date, end_date, status),
             )
+            _consume_procedure_results(cursor)
             conn.commit()
         finally:
             conn.close()
@@ -49,11 +56,12 @@ class GoalService:
     def update_status(goal_id: int, user_id: int, status: str) -> None:
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             cursor.callproc(
                 "sp_update_goal_status",
                 (goal_id, user_id, status),
             )
+            _consume_procedure_results(cursor)
             conn.commit()
         finally:
             conn.close()
@@ -70,7 +78,7 @@ class GoalService:
     ) -> None:
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             cursor.callproc(
                 "sp_update_goal",
                 (
@@ -83,6 +91,7 @@ class GoalService:
                     status,
                 ),
             )
+            _consume_procedure_results(cursor)
             conn.commit()
         finally:
             conn.close()
@@ -91,8 +100,9 @@ class GoalService:
     def delete_goal(goal_id: int, user_id: int) -> None:
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             cursor.callproc("sp_delete_goal", (goal_id, user_id))
+            _consume_procedure_results(cursor)
             conn.commit()
         finally:
             conn.close()
