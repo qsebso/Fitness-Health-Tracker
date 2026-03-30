@@ -33,3 +33,5 @@ Project TODOs
   - trigger checks after relevant writes (metrics/check-ins/workouts/nutrition)
   - grant idempotently via `sp_grant_user_achievement_by_code`
   - document rule definitions so expected behavior is testable
+
+- [ ] Remove Hasing
