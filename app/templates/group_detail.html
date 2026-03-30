@@ -14,7 +14,7 @@ Information inside: Member list; owners can add/remove members.
   {% endif %}
 
   {% if is_owner %}
-    <section class="group-form-card">
+    <section class="form-card">
       <h3>Add Member</h3>
       <form method="post" action="/groups/{{ group.group_id }}/members" class="auth-form">
         <label>
@@ -29,6 +29,32 @@ Information inside: Member list; owners can add/remove members.
     </section>
   {% else %}
     <p><a href="/groups">Back to Groups</a></p>
+  {% endif %}
+
+  <h3>Poster Board</h3>
+  <section class="form-card">
+    <form method="post" action="/groups/{{ group.group_id }}/posts" class="auth-form">
+      <label>
+        Share an update
+        <input type="text" name="content" maxlength="500" placeholder="Just lost 5 lbs this month..." required />
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Post</button>
+      </div>
+    </form>
+  </section>
+
+  {% if posts %}
+    <ul class="post-list">
+      {% for p in posts %}
+        <li class="post-card">
+          <div class="post-meta"><strong>{{ p.username }}</strong> · {{ p.created_at }}</div>
+          <p class="post-content">{{ p.content }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts yet in this group.</p>
   {% endif %}
 
   <h3>Members</h3>
