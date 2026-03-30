@@ -4,9 +4,9 @@ use fitness_db;
 -- NOTE:
 -- - Assumes schema.sql has already been run.
 -- - Insert order follows FK dependencies.
--- - Password values below are placeholder hashes for development/testing only.
+-- - Password values are plain text for demo/grading (matches app behavior).
 
-INSERT INTO users (username, email, password_hash, first_name, last_name, date_of_birth, gender, height_inches)
+INSERT INTO users (username, email, password, first_name, last_name, date_of_birth, gender, height_inches)
 VALUES
     ('alex_fit', 'alex.fit@example.com', 'hash_alex', 'Alex', 'Turner', '1998-04-12', 'male', 71),
     ('mia_runner', 'mia.runner@example.com', 'hash_mia', 'Mia', 'Lopez', '2001-09-03', 'female', 65),
@@ -119,4 +119,88 @@ VALUES
     (1, 6, 'Just lost 5 lbs this month. Small steps, big wins!', '2026-03-15 08:10:00'),
     (1, 1, 'Huge congrats Quinn! Keep it going.', '2026-03-15 08:20:00'),
     (1, 2, 'Nice work! I finally hit 12k steps today too.', '2026-03-15 09:05:00');
+
+-- Quinn (user_id 6): dashboard demo — active goal, metrics streaks, nutrition streak, 20+ yoga, snapshots, earned badges
+INSERT INTO goals (user_id, goal_type, target_value, start_date, end_date, status)
+VALUES (6, 'weight_loss', 165.0, '2026-03-01', '2026-06-30', 'active');
+
+INSERT INTO daily_checkins (user_id, record_date, eating_quality, energy_level, adherence_to_plan, notes)
+VALUES
+    (6, '2026-03-27', 'good', 'high', 'good', 'Solid week.'),
+    (6, '2026-03-28', 'average', 'medium', 'good', NULL),
+    (6, '2026-03-29', 'good', 'high', 'good', 'Hit step goal again.');
+
+INSERT INTO daily_metrics (user_id, record_date, weight_lbs, steps, sleep_hours, water_intake_cups)
+VALUES
+    (6, '2026-03-16', 172.4, 9300, 7.5, 10.0),
+    (6, '2026-03-17', 172.2, 9100, 7.25, 9.5),
+    (6, '2026-03-18', 172.0, 9400, 7.0, 10.0),
+    (6, '2026-03-19', 171.9, 9200, 7.5, 9.0),
+    (6, '2026-03-20', 171.8, 9500, 6.75, 10.0),
+    (6, '2026-03-21', 171.7, 8800, 8.0, 10.0),
+    (6, '2026-03-22', 171.6, 9100, 7.5, 9.5),
+    (6, '2026-03-23', 171.5, 9000, 7.25, 10.0),
+    (6, '2026-03-24', 171.4, 8900, 7.5, 9.0),
+    (6, '2026-03-25', 171.3, 10400, 7.5, 10.0),
+    (6, '2026-03-26', 171.2, 10600, 7.0, 10.0),
+    (6, '2026-03-27', 171.1, 10800, 7.5, 10.0),
+    (6, '2026-03-28', 171.0, 11000, 7.25, 10.0),
+    (6, '2026-03-29', 170.9, 11200, 7.5, 10.0);
+
+INSERT INTO nutrition_logs (user_id, log_date, meal_type, food_item, calories, protein_g, carbs_g, fat_g)
+VALUES
+    (6, '2026-03-16 12:00:00', 'lunch', 'Chicken bowl', 580, 42.0, 55.0, 18.0),
+    (6, '2026-03-17 12:00:00', 'lunch', 'Salmon salad', 520, 38.0, 28.0, 24.0),
+    (6, '2026-03-18 12:00:00', 'lunch', 'Turkey wrap', 510, 32.0, 48.0, 16.0),
+    (6, '2026-03-19 12:00:00', 'lunch', 'Tofu bowl', 540, 30.0, 62.0, 18.0),
+    (6, '2026-03-20 12:00:00', 'lunch', 'Greek yogurt plate', 480, 28.0, 40.0, 14.0),
+    (6, '2026-03-21 12:00:00', 'lunch', 'Steak salad', 620, 45.0, 22.0, 35.0),
+    (6, '2026-03-22 12:00:00', 'lunch', 'Lentil soup + bread', 560, 24.0, 78.0, 12.0),
+    (6, '2026-03-23 12:00:00', 'lunch', 'Sushi combo', 590, 32.0, 70.0, 14.0),
+    (6, '2026-03-24 12:00:00', 'lunch', 'Chicken Caesar', 550, 40.0, 30.0, 28.0),
+    (6, '2026-03-25 12:00:00', 'lunch', 'Buddha bowl', 530, 22.0, 68.0, 16.0),
+    (6, '2026-03-26 12:00:00', 'lunch', 'Tuna melt', 540, 35.0, 42.0, 22.0),
+    (6, '2026-03-27 12:00:00', 'lunch', 'Burrito bowl', 640, 36.0, 72.0, 20.0),
+    (6, '2026-03-28 12:00:00', 'lunch', 'Pho', 480, 28.0, 58.0, 12.0),
+    (6, '2026-03-29 12:00:00', 'lunch', 'Mediterranean plate', 560, 34.0, 45.0, 22.0);
+
+INSERT INTO workout_logs (user_id, exercise_id, log_date, duration_minutes, calories_burned, notes)
+VALUES
+    (6, 6, '2026-03-05 07:00:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-06 07:10:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-07 18:00:00', 45, 195.0, 'Yin yoga'),
+    (6, 6, '2026-03-08 07:05:00', 35, 151.7, 'Sun salutations'),
+    (6, 6, '2026-03-09 07:15:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-10 17:30:00', 50, 216.7, 'Power yoga'),
+    (6, 6, '2026-03-11 07:00:00', 40, 173.3, 'Morning yoga'),
+    (6, 6, '2026-03-12 07:20:00', 45, 195.0, 'Vinyasa'),
+    (6, 6, '2026-03-13 08:00:00', 30, 130.0, 'Stretch'),
+    (6, 6, '2026-03-14 09:00:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-15 07:30:00', 45, 195.0, 'Yoga'),
+    (6, 6, '2026-03-16 18:15:00', 40, 173.3, 'Evening yoga'),
+    (6, 6, '2026-03-17 07:00:00', 35, 151.7, 'Yoga'),
+    (6, 6, '2026-03-18 19:00:00', 50, 216.7, 'Hot yoga'),
+    (6, 6, '2026-03-19 07:10:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-20 07:00:00', 45, 195.0, 'Yoga'),
+    (6, 6, '2026-03-21 10:00:00', 40, 173.3, 'Weekend yoga'),
+    (6, 6, '2026-03-22 07:15:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-23 17:45:00', 35, 151.7, 'Yoga'),
+    (6, 6, '2026-03-24 07:00:00', 45, 195.0, 'Yoga'),
+    (6, 6, '2026-03-25 18:00:00', 40, 173.3, 'Recovery yoga'),
+    (6, 6, '2026-03-26 07:30:00', 40, 173.3, 'Yoga flow'),
+    (6, 6, '2026-03-27 07:00:00', 45, 195.0, 'Yoga'),
+    (6, 6, '2026-03-28 08:30:00', 40, 173.3, 'Yoga'),
+    (6, 6, '2026-03-29 07:00:00', 45, 195.0, 'Yoga');
+
+INSERT INTO progress_snapshots (user_id, snapshot_date, avg_weight_lbs_7d, total_workouts_7d, avg_steps_7d, avg_sleep_hours_7d, avg_protein_g_7d)
+VALUES
+    (6, '2026-03-27', 171.35, 18, 10120.0, 7.45, 36.5),
+    (6, '2026-03-29', 171.05, 22, 10380.0, 7.42, 38.2);
+
+INSERT INTO user_achievements (user_id, achievement_def_id, achieved_at)
+VALUES
+    (6, 1, '2026-03-29 08:00:00'),
+    (6, 2, '2026-03-29 08:01:00'),
+    (6, 3, '2026-03-29 08:02:00'),
+    (6, 4, '2026-03-29 08:03:00');
 

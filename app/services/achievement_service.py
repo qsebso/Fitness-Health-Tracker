@@ -45,12 +45,14 @@ class AchievementService:
         """Idempotent grant when rules detect completion (app or batch job)."""
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
+            cursor = conn.cursor(buffered=True)
             when = achieved_at or datetime.now(timezone.utc).replace(tzinfo=None)
             cursor.callproc(
                 "sp_grant_user_achievement_by_code",
                 (user_id, code, when),
             )
+            for result in cursor.stored_results():
+                result.fetchall()
             conn.commit()
         finally:
             conn.close()

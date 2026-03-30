@@ -12,7 +12,7 @@ body {
 }
 
 .app-header {
-  padding: 16px;
+  padding: 16px 24px;
   background: #111;
   color: #fff;
 }
@@ -23,6 +23,8 @@ body {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .top-nav {
@@ -47,7 +49,11 @@ body {
 }
 
 .app-main {
-  padding: 16px;
+  padding: 20px 24px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .error {
@@ -280,5 +286,74 @@ th {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 14px 16px;
+}
+
+/* Dashboard */
+.dashboard-intro {
+  margin: 18px 0 8px;
+}
+
+.dashboard-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card--summary {
+  max-width: 100%;
+}
+
+.dashboard-card h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.dashboard-section {
+  margin-top: 22px;
+  max-width: 100%;
+}
+
+.dashboard-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.dash-stats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.dash-stats li strong {
+  color: #111827;
+}
+
+.dash-hint {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+}
+
+.dash-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.dash-list a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dash-list a:hover {
+  text-decoration: underline;
 }
 

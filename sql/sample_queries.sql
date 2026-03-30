@@ -127,7 +127,7 @@ LIMIT 1;
 -- =============================================================================
 -- 6) sp_register_user — NOTE vs current schema (read before running)
 -- =============================================================================
--- procedures.sql currently inserts only (username, email, password_hash).
+-- procedures.sql registers with (username, email, password, first_name, last_name, date_of_birth, gender, height_inches).
 -- sql/schema.sql requires NOT NULL: first_name, last_name, date_of_birth, gender, height_inches.
 --
 -- EXPECTED if you run as-is: MySQL error (e.g. Field 'first_name' doesn't have a default value).
@@ -165,11 +165,11 @@ WHERE gm.group_id = 1;
 
 -- EXPECTED: error on UPDATE — future DOB not allowed (tests UPDATE trigger).
 -- UPDATE users SET date_of_birth = DATE_ADD(CURDATE(), INTERVAL 1 DAY) WHERE username = 'past_ok';
-Insert into users (username, email, password_hash, first_name, last_name, date_of_birth, gender, height_inches)
+Insert into users (username, email, password, first_name, last_name, date_of_birth, gender, height_inches)
 VALUES ('future_dob3', 'future3@example.com', 'x', 'A', 'B', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'other', 70);
 -- EXPECTED: error SQLSTATE 45000 — future DOB not allowed.
 
-Insert into users (username, email, password_hash, first_name, last_name, date_of_birth, gender, height_inches)
+Insert into users (username, email, password, first_name, last_name, date_of_birth, gender, height_inches)
 VALUES ('past_ok', 'past_ok@example.com', 'x', 'A', 'B', '2000-01-01', 'other', 70);
 -- EXPECTED: succeeds — past or today is allowed (use a unique username/email).
 

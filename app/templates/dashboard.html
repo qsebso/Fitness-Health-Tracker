@@ -1,32 +1,176 @@
 <!--
 Used for: User dashboard.
-Information inside: Placeholder sections for recent activity, goals, and progress snapshots.
+Information inside: Recent activity, goals, groups, achievements, progress snapshots.
 -->
 
 {% extends "base.html" %}
 
 {% block content %}
   <h2>Dashboard</h2>
-  <p>Welcome, {{ request.session.get("username", "user") }}.</p>
+  <p class="muted">Welcome, <strong>{{ request.session.get("username", "user") }}</strong>.</p>
 
-  <form method="post" action="/logout">
-    <button type="submit">Logout</button>
-  </form>
-  <p><a href="/checkins">Go to daily check-ins</a></p>
+  {% if dashboard_error %}
+    <p class="error-banner" role="alert">Could not load some dashboard data: {{ dashboard_error }}</p>
+  {% endif %}
 
-  <section>
-    <h3>Recent Summary</h3>
-    <p>TODO: Render dashboard summary here.</p>
+  <section class="dashboard-intro">
+    <div class="dashboard-card dashboard-card--summary">
+      <h3>At a glance</h3>
+      <ul class="dash-stats">
+        <li><strong>{{ dashboard.get('active_goal_count', 0) }}</strong> active goals</li>
+        <li><strong>{{ dashboard.get('group_count', 0) }}</strong> support groups</li>
+        <li><strong>{{ dashboard.get('achievements', [])|length }}</strong> recent achievements shown below</li>
+      </ul>
+      <p class="muted dash-hint">Use the links in the header to log data and explore the app.</p>
+    </div>
   </section>
 
-  <section>
+  <section class="dashboard-section">
+    <h3>Recent check-ins</h3>
+    {% if dashboard.get('checkins') %}
+      <table>
+        <thead><tr><th>Date</th><th>Eating</th><th>Energy</th><th>Adherence</th></tr></thead>
+        <tbody>
+          {% for r in dashboard.get('checkins', []) %}
+            <tr>
+              <td>{{ r.record_date }}</td>
+              <td>{{ r.eating_quality }}</td>
+              <td>{{ r.energy_level }}</td>
+              <td>{{ r.adherence_to_plan }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No check-ins yet.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
+    <h3>Recent daily metrics</h3>
+    {% if dashboard.get('metrics') %}
+      <table>
+        <thead><tr><th>Date</th><th>Weight</th><th>Steps</th><th>Sleep</th><th>Water (cups)</th></tr></thead>
+        <tbody>
+          {% for r in dashboard.get('metrics', []) %}
+            <tr>
+              <td>{{ r.record_date }}</td>
+              <td>{{ r.weight_lbs }}</td>
+              <td>{{ r.steps }}</td>
+              <td>{{ r.sleep_hours }}</td>
+              <td>{{ r.water_intake_cups }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No metrics yet.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
     <h3>Goals</h3>
-    <p>TODO: List user goals here.</p>
+    {% if dashboard.get('goals') %}
+      <table>
+        <thead><tr><th>Type</th><th>Target</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for g in dashboard.get('goals', []) %}
+            <tr>
+              <td>{{ g.goal_type }}</td>
+              <td>{{ g.target_value }}</td>
+              <td>{{ g.start_date }}</td>
+              <td>{{ g.end_date or "—" }}</td>
+              <td>{{ g.status }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No goals yet.</p>{% endif %}
   </section>
 
-  <section>
-    <h3>Progress</h3>
-    <p>TODO: Render progress snapshot charts here.</p>
+  <section class="dashboard-section">
+    <h3>Recent workouts</h3>
+    {% if dashboard.get('workouts') %}
+      <table>
+        <thead><tr><th>When</th><th>Exercise</th><th>Minutes</th><th>Calories</th></tr></thead>
+        <tbody>
+          {% for w in dashboard.get('workouts', []) %}
+            <tr>
+              <td>{{ w.log_date }}</td>
+              <td>{{ w.exercise_name }}</td>
+              <td>{{ w.duration_minutes }}</td>
+              <td>{{ w.calories_burned }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No workouts yet.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
+    <h3>Recent meals (nutrition)</h3>
+    {% if dashboard.get('nutrition') %}
+      <table>
+        <thead><tr><th>When</th><th>Meal</th><th>Item</th><th>Cal</th></tr></thead>
+        <tbody>
+          {% for n in dashboard.get('nutrition', []) %}
+            <tr>
+              <td>{{ n.log_date }}</td>
+              <td>{{ n.meal_type }}</td>
+              <td>{{ n.food_item }}</td>
+              <td>{{ n.calories }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No nutrition logs yet.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
+    <h3>Support groups</h3>
+    {% if dashboard.get('groups') %}
+      <ul class="dash-list">
+        {% for g in dashboard.get('groups', []) %}
+          <li><a href="/groups/{{ g.group_id }}">{{ g.group_name }}</a> ({{ g.role }})</li>
+        {% endfor %}
+      </ul>
+    {% else %}<p class="muted">Not in any groups yet.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
+    <h3>Recent achievements</h3>
+    {% if dashboard.get('achievements') %}
+      <ul class="dash-list">
+        {% for a in dashboard.get('achievements', []) %}
+          <li><strong>{{ a.title }}</strong> — {{ a.achieved_at }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}<p class="muted">No achievements yet. Log metrics, meals, and workouts to unlock them.</p>{% endif %}
+  </section>
+
+  <section class="dashboard-section">
+    <h3>Progress snapshots (7-day rollups)</h3>
+    {% if dashboard.get('snapshots') %}
+      <table>
+        <thead>
+          <tr>
+            <th>Snapshot date</th>
+            <th>Avg weight 7d</th>
+            <th>Workouts 7d</th>
+            <th>Avg steps 7d</th>
+            <th>Avg sleep 7d</th>
+            <th>Avg protein 7d</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in dashboard.get('snapshots', []) %}
+            <tr>
+              <td>{{ s.snapshot_date }}</td>
+              <td>{{ s.avg_weight_lbs_7d }}</td>
+              <td>{{ s.total_workouts_7d }}</td>
+              <td>{{ s.avg_steps_7d }}</td>
+              <td>{{ s.avg_sleep_hours_7d }}</td>
+              <td>{{ s.avg_protein_g_7d }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}<p class="muted">No snapshot rows (seed includes sample snapshots if DB is loaded).</p>{% endif %}
   </section>
 {% endblock %}
-
