@@ -159,6 +159,14 @@ th {
   max-width: 720px;
 }
 
+.form-hint {
+  display: block;
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  max-width: 36rem;
+}
+
 .error-banner {
   color: #b00020;
   background: #fde7ec;

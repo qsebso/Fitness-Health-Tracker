@@ -14,12 +14,12 @@ Full rubric text lives in Canvas (“Project Deliverable Latest_GRAD”). Use th
 
 ## Database (MySQL)
 
-- [ ] Every foreign key specifies `ON UPDATE` and `ON DELETE` (per rubric)
-- [ ] Table count meets group size (1→≥6, 2→≥9, 3→≥12); schema in 3NF
-- [ ] Primary keys on all tables; FKs (and UNIQUE where needed) match your ERD
-- [ ] Field/table constraints: NOT NULL, DEFAULT, etc., where appropriate
-- [ ] Server-side objects: procedures, functions, triggers, events (not all SQL in the client)
-- [ ] Self-contained dump: `CREATE`/`USE`, all objects, sample data; runs clean in a fresh MySQL
+- [x] Every foreign key specifies `ON UPDATE` and `ON DELETE` (per rubric)
+- [x] Table count meets group size (1→≥6, 2→≥9, 3→≥12); schema in 3NF
+- [x] Primary keys on all tables; FKs (and UNIQUE where needed) match your ERD
+- [x] Field/table constraints: NOT NULL, DEFAULT, etc., where appropriate
+- [x] Server-side objects: procedures, functions, triggers (not all SQL in the client); add an event only if your rubric requires it
+- [x] Self-contained dump: `CREATE`/`USE`, all objects, sample data; runs clean in a fresh MySQL
 
 **How to verify:** Grep the schema/dump for `FOREIGN KEY` and confirm each has `ON UPDATE` and `ON DELETE`. Count tables. Open dump on a clean DB. In Workbench, reverse-engineer and compare to your logical design.
 

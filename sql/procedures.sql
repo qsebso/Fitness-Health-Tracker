@@ -43,6 +43,7 @@ DROP PROCEDURE IF EXISTS sp_get_group_posts;
 
 DROP TRIGGER IF EXISTS tr_users_before_insert_dob;
 DROP TRIGGER IF EXISTS tr_users_before_update_dob;
+DROP FUNCTION IF EXISTS fn_est_calories_burned;
 
 -- users
 DELIMITER $$
@@ -316,8 +317,24 @@ END$$
 
 DELIMITER ;
 
--- workout_logs
+-- workout_logs (uses fn_est_calories_burned when p_calories_burned IS NULL)
 DELIMITER $$
+
+CREATE FUNCTION fn_est_calories_burned(
+    p_calories_per_hour DECIMAL(5,2),
+    p_duration_minutes INT
+) RETURNS DECIMAL(10,2)
+    DETERMINISTIC
+    NO SQL
+BEGIN
+    IF p_duration_minutes IS NULL OR p_duration_minutes < 1 THEN
+        RETURN NULL;
+    END IF;
+    IF p_calories_per_hour IS NULL OR p_calories_per_hour <= 0 THEN
+        RETURN NULL;
+    END IF;
+    RETURN ROUND((p_calories_per_hour / 60.0) * p_duration_minutes, 2);
+END$$
 
 CREATE PROCEDURE sp_log_workout(
     IN p_user_id INT,
@@ -328,8 +345,21 @@ CREATE PROCEDURE sp_log_workout(
     IN p_notes TEXT
 )
 BEGIN
+    DECLARE v_cal DECIMAL(6,2);
+    DECLARE v_cph DECIMAL(5,2);
+
+    IF p_calories_burned IS NOT NULL THEN
+        SET v_cal = p_calories_burned;
+    ELSE
+        SELECT calories_per_hour INTO v_cph
+        FROM exercise_types
+        WHERE exercise_id = p_exercise_id
+        LIMIT 1;
+        SET v_cal = fn_est_calories_burned(v_cph, p_duration_minutes);
+    END IF;
+
     INSERT INTO workout_logs (user_id, exercise_id, log_date, duration_minutes, calories_burned, notes)
-    VALUES (p_user_id, p_exercise_id, p_log_date, p_duration_minutes, p_calories_burned, p_notes);
+    VALUES (p_user_id, p_exercise_id, p_log_date, p_duration_minutes, v_cal, p_notes);
 END$$
 
 CREATE PROCEDURE sp_update_workout_log(
@@ -342,12 +372,25 @@ CREATE PROCEDURE sp_update_workout_log(
     IN p_notes TEXT
 )
 BEGIN
+    DECLARE v_cal DECIMAL(6,2);
+    DECLARE v_cph DECIMAL(5,2);
+
+    IF p_calories_burned IS NOT NULL THEN
+        SET v_cal = p_calories_burned;
+    ELSE
+        SELECT calories_per_hour INTO v_cph
+        FROM exercise_types
+        WHERE exercise_id = p_exercise_id
+        LIMIT 1;
+        SET v_cal = fn_est_calories_burned(v_cph, p_duration_minutes);
+    END IF;
+
     UPDATE workout_logs
     SET
         exercise_id = p_exercise_id,
         log_date = p_log_date,
         duration_minutes = p_duration_minutes,
-        calories_burned = p_calories_burned,
+        calories_burned = v_cal,
         notes = p_notes
     WHERE workout_id = p_workout_id
       AND user_id = p_user_id;

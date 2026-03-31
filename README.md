@@ -37,7 +37,7 @@ The application uses:
 2. Copy `.env.example` to `.env` and fill in your local values
 3. Run `sql/schema.sql`
 4. Run `sql/seed.sql`
-5. Run `sql/procedures.sql`
+5. Run `sql/procedures.sql` (stored procedures, triggers and, functions)
 6. Install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -49,6 +49,8 @@ The application uses:
    On some setups you can use `uvicorn app.main:app --reload` instead if `uvicorn` is on your PATH.
 
 After `seed.sql`, you can sign in as **`testuser`** / **`testuser`** to view an account with fuller dashboard sample data.
+
+**Fresh database:** run `schema.sql` → `seed.sql` → `procedures.sql` in that order on an empty `fitness_db` (or let `schema.sql` recreate it).
 
 ## Notes for submission / later use
 - Keep `.env` local only (never submit secrets); submit `.env.example` instead.

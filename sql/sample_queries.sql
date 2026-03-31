@@ -111,3 +111,6 @@ VALUES ('past_ok', 'past_ok@example.com', 'x', 'A', 'B', '2000-01-01', 'other', 
 
 SELECT * FROM users;
 SELECT * FROM nutrition_logs;
+
+-- fn_est_calories_burned (stored function): estimated kcal for duration at given calories-per-hour rate
+SELECT fn_est_calories_burned(700.00, 45) AS est_calories_45min_at_700_per_hr;
