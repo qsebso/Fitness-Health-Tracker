@@ -1,7 +1,4 @@
-"""
-Used for: Authentication routes (register/login/logout).
-Information inside: Placeholder endpoints that will call `AuthService`.
-"""
+"""Register, login, and logout routes."""
 
 from datetime import date
 

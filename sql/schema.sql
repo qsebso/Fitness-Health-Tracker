@@ -1,5 +1,4 @@
--- Used for: Database schema definition (tables, PK/FK/UNIQUE/CHECK constraints).
--- Information inside: Finalized DDL for the fitness tracker schema, including support groups.
+-- fitness_db schema: tables, keys, and constraints.
 DROP SCHEMA IF EXISTS fitness_db;
 CREATE SCHEMA fitness_db;
 use fitness_db;
@@ -66,7 +65,6 @@ CREATE TABLE daily_checkins (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Master list of achievements (badges). Rules for "when earned" live in app code or future procedures/events.
 CREATE TABLE achievement_definitions (
     achievement_def_id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(64) NOT NULL UNIQUE,
@@ -74,7 +72,6 @@ CREATE TABLE achievement_definitions (
     description TEXT NOT NULL
 );
 
--- Rows here mean a user has earned that definition (once per user per definition).
 CREATE TABLE user_achievements (
     user_achievement_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -139,7 +136,6 @@ CREATE TABLE group_memberships (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Lightweight group poster board (non-realtime): members can post progress updates (realized needed later in project)
 CREATE TABLE group_posts (
     post_id INT AUTO_INCREMENT PRIMARY KEY,
     group_id INT NOT NULL,

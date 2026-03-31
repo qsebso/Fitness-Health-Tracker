@@ -6,7 +6,7 @@ Full rubric text lives in Canvas (“Project Deliverable Latest_GRAD”). Use th
 
 ## Cleanup
 
-- [ ] Remove unused files, dead code, and dependencies not needed for submission
+- [x] Remove unused files, dead code, and dependencies not needed for submission
 
 **How to verify:** Repo search for unused imports/routes; delete obvious junk; run the app and tests; ensure `README` only lists deps you actually use.
 

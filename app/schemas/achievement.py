@@ -1,7 +1,4 @@
-"""
-Used for: Achievement schema definitions.
-Information inside: Pydantic models for catalog rows, earned rows, merged UI/API payloads, and grant requests.
-"""
+"""Pydantic models for achievement catalog and earned rows."""
 
 from datetime import datetime
 from typing import Optional

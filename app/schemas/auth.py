@@ -1,7 +1,4 @@
-"""
-Used for: Authentication request/response schemas.
-Information inside: Placeholder Pydantic models for register/login/logout payloads.
-"""
+"""Pydantic models for registration and login payloads."""
 
 from datetime import date
 from typing import Literal

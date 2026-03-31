@@ -1,8 +1,3 @@
-<!--
-Used for: High-level project overview and setup instructions.
-Information inside: Feature list, tech stack, project structure, and how to run the FastAPI app.
--->
-
 # Fitness Trend Tracking System
 
 ## Overview
@@ -52,6 +47,8 @@ The application uses:
    python -m uvicorn app.main:app --reload
    ```
    On some setups you can use `uvicorn app.main:app --reload` instead if `uvicorn` is on your PATH.
+
+After `seed.sql`, you can sign in as **`testuser`** / **`testuser`** to view an account with fuller dashboard sample data.
 
 ## Notes for submission / later use
 - Keep `.env` local only (never submit secrets); submit `.env.example` instead.
