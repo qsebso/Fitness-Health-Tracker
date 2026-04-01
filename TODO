@@ -1,81 +1,40 @@
-# Fitness / Health Tracker — project checklist
+# Fitness / Health Tracker — checklist
 
-Full rubric text lives in Canvas (“Project Deliverable Latest_GRAD”). Use this file as your working list; tick items as you go.
-
----
-
-## Cleanup
-
-- [x] Remove unused files, dead code, and dependencies not needed for submission
-
-**How to verify:** Repo search for unused imports/routes; delete obvious junk; run the app and tests; ensure `README` only lists deps you actually use.
+Full rubric: Canvas (“Project Deliverable Latest_GRAD”). **Do the top sections first**; completed work is archived at the bottom.
 
 ---
 
-## Database (MySQL)
+## What to do next (in rough order)
 
-- [x] Every foreign key specifies `ON UPDATE` and `ON DELETE` (per rubric)
-- [x] Table count meets group size (1→≥6, 2→≥9, 3→≥12); schema in 3NF
-- [x] Primary keys on all tables; FKs (and UNIQUE where needed) match your ERD
-- [x] Field/table constraints: NOT NULL, DEFAULT, etc., where appropriate
-- [x] Server-side objects: procedures, functions, triggers (not all SQL in the client); add an event only if your rubric requires it
-- [x] Self-contained dump: `CREATE`/`USE`, all objects, sample data; runs clean in a fresh MySQL
+### 1. Report (PDF)
 
-**How to verify:** Grep the schema/dump for `FOREIGN KEY` and confirm each has `ON UPDATE` and `ON DELETE`. Count tables. Open dump on a clean DB. In Workbench, reverse-engineer and compare to your logical design.
-
----
-
-## Client application
-
-- [ ] Working **CREATE** — new rows persist (check in Workbench/CLI)
-- [ ] Working **READ** — data shown comes from the DB
-- [ ] Working **UPDATE** — changes persist after refresh/reconnect
-- [ ] Working **DELETE** — rows removed in the DB
-- [ ] UI: clear prompts and feedback; flow is driven by user input
-- [ ] Modularity: reusable functions/modules; lean client SQL, heavier use of DB objects where rubric expects it
-- [ ] Error handling: bad input and DB errors handled without crashes
-
-**How to verify:** For each CRUD type, do the action in the app, then confirm the same row(s) in MySQL Workbench (or `mysql` client). Try invalid input and disconnect DB briefly if you can do so safely.
-
----
-
-## Submission package
-
-- [ ] Zip: `groupname_project.zip` with schema dump, all app code, report (and presentation extras if any)
-- [ ] Submission note includes **link to project video** (if required)
-- [ ] Nothing missing: grader can build/run from README without chasing you for files
-
-**How to verify:** Unzip on another machine or folder; follow README only; import dump; run app end-to-end.
-
----
-
-## Report (PDF)
-
-- [ ] README: install steps, libs, versions, expected paths
+- [ ] README content in report: install steps, libs, versions, expected paths
 - [ ] Technical specifications (stack, frameworks)
 - [ ] Conceptual design: ERD in **UML**
 - [ ] Logical design: crow’s foot (e.g. Workbench reverse engineer)
 - [ ] User activity / flow (text or diagram)
-- [ ] Lessons learned + future work (and note anything broken, if applicable)
+- [ ] Lessons learned + future work (note anything broken, if applicable)
 - [ ] File name: `canvas_group_name_final_report.pdf`
 
-**How to verify:** Print or PDF review: every required section present; diagrams match the submitted schema.
+**Check:** PDF has every section; diagrams match submitted schema.
 
----
+### 2. Video / presentation (5–7 min)
 
-## Video / presentation (5–7 min)
+- [ ] Schema, architecture, and app purpose (audio/video clear)
+- [ ] **Three** CRUD demos (or two if syllabus allows): DB **before** → app → DB **after**, change visible
+- [ ] All group members participate; logical flow
 
-- [ ] Schema, architecture, and app purpose explained clearly (audio/video clear)
-- [ ] **Three** CRUD demos (or two if first presentation day only — per your syllabus): for each, show DB client **before** → use app → show DB client **after** with the change highlighted
-- [ ] All group members participate equally; logical flow through topics
+**Check:** Dry run with timer; one practice watch-through.
 
-**How to verify:** Dry run with a timer; record a practice take and watch once for gaps.
+### 3. Submission package
 
----
+- [ ] Zip: `groupname_project.zip` — schema dump, app code, report (and extras if any)
+- [ ] Submission note includes **project video link** (if required)
+- [ ] Grader can build/run from **README only** (no missing files)
 
-## Rubric pass (cross-check Canvas)
+**Check:** Unzip elsewhere; README-only import DB + run app.
 
-Work through Canvas row-by-row and mark below when satisfied:
+### 4. Rubric pass (Canvas — still open)
 
 **Video / deliverable meta**
 
@@ -88,23 +47,7 @@ Work through Canvas row-by-row and mark below when satisfied:
 
 **Submission**
 
-- [ ] Complete: DB objects + frontend + runnable dump + sample data + README; no post-deadline rescue needed
-
-**DB criteria**
-
-- [ ] Complexity / 3NF / minimum tables for group size
-- [ ] PKs and FKs (relationships) complete
-- [ ] FKs fully specified (`ON UPDATE` / `ON DELETE`)
-- [ ] Field and table constraints
-- [ ] Database programming objects (quantity/quality per rubric)
-
-**Client criteria**
-
-- [ ] Completeness of CRUD coverage across entities/tables
-- [ ] User interface usability
-- [ ] CREATE / READ / UPDATE / DELETE each working as defined
-- [ ] Modularity (host language + DB objects)
-- [ ] Robustness / error handling
+- [ ] Complete: DB objects + frontend + runnable dump + sample data + README; no post-deadline rescue
 
 **Report criteria**
 
@@ -114,18 +57,55 @@ Work through Canvas row-by-row and mark below when satisfied:
 - [ ] User activity description
 - [ ] README + technical description sections
 
-**Bonus (optional, max 105/100)**
+**Bonus (optional)**
 
 - [ ] Any planned bonus items documented/demonstrated
 
-**How to verify:** Open the rubric in Canvas; for each row, point to evidence (file, demo timestamp, diagram page). No evidence → leave unchecked until you add it.
-
 ---
 
-## Wrap-up
+## Done (archive)
 
-- [ ] Front-end polish and any remaining UI work
-- [ ] Debug open issues (track in issues list or short notes here)
-- [ ] Final pass: run full verification above, then submit
+### Cleanup
 
-**How to verify:** Same as sections above, done in order: DB → app → report → video → zip → Canvas checklist.
+- [x] Remove unused files, dead code, and dependencies not needed for submission
+
+### Database (MySQL)
+
+- [x] Every foreign key specifies `ON UPDATE` and `ON DELETE`
+- [x] Table count meets group size (1→≥6, 2→≥9, 3→≥12); schema in 3NF
+- [x] Primary keys on all tables; FKs (and UNIQUE where needed) match ERD
+- [x] Field/table constraints: NOT NULL, DEFAULT, etc., where appropriate
+- [x] Server-side objects: procedures, functions, triggers (add event only if rubric requires)
+- [x] Self-contained setup: `schema.sql` → `seed.sql` → `procedures.sql` on fresh MySQL
+
+### Client application
+
+- [x] **CREATE** — new rows persist (Workbench/CLI)
+- [x] **READ** — data from DB
+- [x] **UPDATE** — changes persist after refresh/reconnect
+- [x] **DELETE** — rows removed in DB
+- [x] UI: clear prompts and feedback; user-driven flow
+- [x] Modularity: services + stored procedures; lean client SQL
+- [x] Error handling: bad input / DB errors without crashing the app
+
+### Wrap-up
+
+- [x] Front-end polish and remaining UI work
+- [x] Debug open issues
+- [x] Final local verification (app + DB + `pytest`)
+
+### Rubric — DB criteria (done)
+
+- [x] Complexity / 3NF / minimum tables
+- [x] PKs and FKs complete
+- [x] FKs fully specified (`ON UPDATE` / `ON DELETE`)
+- [x] Field and table constraints
+- [x] Database programming objects
+
+### Rubric — Client criteria (done)
+
+- [x] CRUD coverage across entities/tables
+- [x] User interface usability
+- [x] CREATE / READ / UPDATE / DELETE as defined
+- [x] Modularity (host language + DB objects)
+- [x] Robustness / error handling

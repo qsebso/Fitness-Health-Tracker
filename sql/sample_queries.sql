@@ -109,8 +109,14 @@ VALUES ('future_dob_test', 'future_dob_test@example.com', 'x', 'A', 'B', DATE_AD
 INSERT INTO users (username, email, password, first_name, last_name, date_of_birth, gender, height_inches)
 VALUES ('past_ok', 'past_ok@example.com', 'x', 'A', 'B', '2000-01-01', 'other', 70);
 
-SELECT * FROM users;
-SELECT * FROM nutrition_logs;
+SELECT * FROM users WHERE user_id = 6;
+SELECT * FROM group_memberships WHERE user_id = 6;
+SELECT * FROM nutrition_logs WHERE user_id = 6;
+SELECT * FROM daily_metrics WHERE user_id = 6;
+SELECT * FROM goals WHERE user_id = 6;
+SELECT * FROM daily_checkins WHERE user_id = 6;
+SELECT * FROM workout_logs WHERE user_id = 6;
+
 
 -- fn_est_calories_burned (stored function): estimated kcal for duration at given calories-per-hour rate
 SELECT fn_est_calories_burned(700.00, 45) AS est_calories_45min_at_700_per_hr;

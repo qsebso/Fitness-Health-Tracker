@@ -1,5 +1,4 @@
--- Stored procedures and triggers for fitness_db. Run after schema.sql.
--- Upserts use INSERT ... VALUES (...) AS new (MySQL 8.0.19+). Passwords are plain text in this build; hash them in production.
+-- Stored procedures, triggers, and functions for fitness_db. Run after schema.sql.
 
 USE fitness_db;
 
