@@ -1,0 +1,63 @@
+Lessons Learned & Future Work
+Fitness-Health-Tracker
+============================
+
+
+LESSONS LEARNED
+---------------
+
+Technical expertise gained
+  Building this project pushed past "database in isolation" and into a real
+  application stack. FastAPI was new territory for me: routing, dependency
+  injection for a DB connection, and returning HTML with Jinja instead of only
+  JSON made the app feel like an actual product rather than a homework script.
+
+  Connecting MySQL to a web app (not just a CLI or one-off queries) meant
+  thinking about connection pooling, environment-based credentials, and what
+  belongs in SQL vs in Python. Writing stored procedures forced me to keep
+  business rules close to the data things like logging workouts, updating
+  goals, and keeping derived fields consistent so the app layer could stay
+  thinner for those paths.
+
+Insights (time management, process, domain)
+  Deadlines showed up faster than expected once integration work started.
+  Time management mattered most when one piece blocked another: the schema
+  had to be stable enough before seed data and procedures, and procedures
+  before the UI could show real behavior. Working in a sensible order
+  (design → schema → procedures → app → polish) saved rework. Jumping ahead
+  to screens before the DB was ready would have meant duplicate fixes.
+
+  On the domain side, fitness and nutrition data look simple until you model
+  them: daily logs, goals, groups, and snapshots all touch the same user
+  story in different ways. Designing for "what I might query later" helped,
+  even when the first version of the app did not use every table equally.
+
+Alternative designs considered
+  I spent time thinking about ORM vs SQL. Pure ORM can hide the
+  database and make complex reporting awkward. Pure procedures can make quick
+  CRUD and templating feel heavy. A mix feels more practical: use the ORM or
+  straight SQL in the app where it is simple and readable, and push multi-step
+  or integrity sensitive logic into procedures where one call should mean one
+  consistent outcome. I do not think "all of one" is the best default and a
+  hybrid is worth keeping as projects grow.
+
+Known issues / code not working
+  As of the last pass, everything works and runs as intended.
+
+
+FUTURE WORK
+-----------
+
+Planned uses of the database
+  I want to actually use this for myself. Logging what I do in the gym and what I
+  eat, then looking back over weeks and months instead of guessing. Having
+  weight, workouts, nutrition, and goals in one place should make it easier
+  to see whether I am trending the right way and adjust before I drift too
+  far off plan. Having a dashboard with 7-day progress snapshots is helpful too.
+
+Potential areas for added functionality
+  Groups could go beyond a place to post messages. Shared achievements,
+  automatic summaries of progress, or lightweight challenges so people see
+  each other working out without manually copying stats. On the training side,
+  a clearer path to track strength (lifts, sets, reps, PRs) would pair well
+  with the current workout logging.

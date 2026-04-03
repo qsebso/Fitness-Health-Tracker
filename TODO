@@ -8,12 +8,12 @@ Full rubric: Canvas (“Project Deliverable Latest_GRAD”). **Do the top sectio
 
 ### 1. Report (PDF)
 
-- [ ] README content in report: install steps, libs, versions, expected paths
-- [ ] Technical specifications (stack, frameworks)
+- [x] README content in report: install steps, libs, versions, expected paths
+- [x] Technical specifications (stack, frameworks)
 - [ ] Conceptual design: ERD in **UML**
-- [ ] Logical design: crow’s foot (e.g. Workbench reverse engineer)
-- [ ] User activity / flow (text or diagram)
-- [ ] Lessons learned + future work (note anything broken, if applicable)
+- [x] Logical design: crow’s foot (e.g. Workbench reverse engineer)
+- [x] User activity / flow (text or diagram)
+- [x] Lessons learned + future work (note anything broken, if applicable)
 - [ ] File name: `canvas_group_name_final_report.pdf`
 
 **Check:** PDF has every section; diagrams match submitted schema.
@@ -31,6 +31,14 @@ Full rubric: Canvas (“Project Deliverable Latest_GRAD”). **Do the top sectio
 - [ ] Zip: `groupname_project.zip` — schema dump, app code, report (and extras if any)
 - [ ] Submission note includes **project video link** (if required)
 - [ ] Grader can build/run from **README only** (no missing files)
+
+**Before you zip (delete from repo copy if you want a smaller submission):**  
+`tests/` and `sql/sample_queries.sql` are optional — fine to drop if the rubric doesn’t ask for them. If you remove `tests/`, consider removing `pytest` from `requirements.txt` so graders aren’t confused.
+
+**Grader / MySQL sanity checks (not in README on purpose):**  
+- Submit **`.env.example`**, not `.env` (no real passwords).  
+- `MYSQL_DATABASE` in `.env` must match `fitness_db` from `schema.sql`.  
+- Data lives on the **MySQL server** — closing Workbench doesn’t delete it. Re-running **`schema.sql`** does wipe the DB. Refreshing the browser is normal; demos usually show rows in Workbench before/after using the app.
 
 **Check:** Unzip elsewhere; README-only import DB + run app.
 
