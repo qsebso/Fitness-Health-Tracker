@@ -10,7 +10,7 @@ Full rubric: Canvas (“Project Deliverable Latest_GRAD”). **Do the top sectio
 
 - [x] README content in report: install steps, libs, versions, expected paths
 - [x] Technical specifications (stack, frameworks)
-- [ ] Conceptual design: ERD in **UML**
+- [x] Conceptual design: ERD in **UML**
 - [x] Logical design: crow’s foot (e.g. Workbench reverse engineer)
 - [x] User activity / flow (text or diagram)
 - [x] Lessons learned + future work (note anything broken, if applicable)
