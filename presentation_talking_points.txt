@@ -6,6 +6,9 @@ Quick opening
 "This is a FastAPI + MySQL fitness tracker. I will show the app flow and then
 show the matching SQL data."
 
+3 cruds talk about architecture schema why and for who
+pdf for all the docs
+USE THE DUMP sql
 
 Demo order (follow this exactly)
 --------------------------------
