@@ -20,17 +20,22 @@ def _as_date(value: Any) -> date:
     return date.fromisoformat(str(value)[:10])
 
 
-def _last_n_days_all_steps_10k(user_id: int, n: int = 5) -> bool:
-    rows = MetricService.list_metrics(user_id, limit=60)
-    by_date: dict[date, int] = {}
+def _has_n_day_steps_streak(user_id: int, n: int = 5, min_steps: int = 10_000) -> bool:
+    """True if metrics include any n consecutive calendar days, each with steps >= min_steps.
+
+    Uses stored metric history, not 'last n days from today', so an older streak still counts.
+    """
+    rows = MetricService.list_metrics(user_id, limit=120)
+    good_days: set[date] = set()
     for r in rows:
-        by_date[_as_date(r["record_date"])] = int(r["steps"])
-    d = date.today()
-    for i in range(n):
-        need = d - timedelta(days=i)
-        if by_date.get(need, 0) < 10_000:
-            return False
-    return True
+        if int(r["steps"]) >= min_steps:
+            good_days.add(_as_date(r["record_date"]))
+    if len(good_days) < n:
+        return False
+    for d in sorted(good_days):
+        if all((d + timedelta(days=k)) in good_days for k in range(n)):
+            return True
+    return False
 
 
 def _last_n_days_hydration(user_id: int, n: int = 14, min_cups: float = 8.0) -> bool:
@@ -70,7 +75,7 @@ def _yoga_workout_count(user_id: int) -> int:
 def evaluate_and_grant(user_id: int) -> None:
     """Run all rules; grants are idempotent in the database."""
     uid = int(user_id)
-    if _last_n_days_all_steps_10k(uid, 5):
+    if _has_n_day_steps_streak(uid, 5, 10_000):
         AchievementService.grant_by_code(uid, "steps_streak_5")
     if _last_n_days_have_nutrition_log(uid, 14):
         AchievementService.grant_by_code(uid, "meal_prep_14")

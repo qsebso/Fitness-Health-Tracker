@@ -1,0 +1,48 @@
+Fitness-Health-Tracker - Simple Presentation Notes
+==================================================
+
+Quick opening
+-------------
+"This is a FastAPI + MySQL fitness tracker. I will show the app flow and then
+show the matching SQL data."
+
+
+Demo order (follow this exactly)
+--------------------------------
+1) Show new user quinn
+   - Show login/user row for quinn.
+   - Mention this proves account creation works.
+
+2) Show SQL table data + one key join
+   - Run select-all queries for core tables.
+   - Run workout + exercise join to show relational structure.
+
+3) Show achievements are automatic
+   - "Achievements are unlocked automatically by app/procedure flow."
+   - Show quinn achievements rows in SQL and/or Achievements page.
+
+4) Logout and login as testuser
+   - "Now I am switching to the seeded demo user with richer data."
+
+5) Show dashboard data
+   - Show progress snapshots / metrics for testuser.
+   - "This is the data driving the dashboard widgets/tables."
+
+6) Show groups and group actions
+   - Show groups, memberships, and posts data.
+   - Mention create group/add member/post are reflected in these tables.
+
+
+If asked: "How do procedures work?"
+-----------------------------------
+"Most procedures are intentionally simple and consistent:
+they take inputs, run insert/update/select on the right tables,
+and return data for the app."
+
+"So yes, mostly data in -> procedure -> table updates/results out."
+
+
+If asked: "Why procedures?"
+---------------------------
+"They keep SQL logic in one place, reduce duplicate query code in routes,
+and make behavior consistent."
