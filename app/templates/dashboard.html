@@ -1,8 +1,3 @@
-<!--
-Used for: User dashboard.
-Information inside: Recent activity, goals, groups, achievements, progress snapshots.
--->
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -13,15 +8,40 @@ Information inside: Recent activity, goals, groups, achievements, progress snaps
     <p class="error-banner" role="alert">Could not load some dashboard data: {{ dashboard_error }}</p>
   {% endif %}
 
-  <section class="dashboard-intro">
-    <div class="dashboard-card dashboard-card--summary">
-      <h3>At a glance</h3>
-      <ul class="dash-stats">
-        <li><strong>{{ dashboard.get('active_goal_count', 0) }}</strong> active goals</li>
-        <li><strong>{{ dashboard.get('group_count', 0) }}</strong> support groups</li>
-        <li><strong>{{ dashboard.get('achievements', [])|length }}</strong> recent achievements shown below</li>
-      </ul>
-      <p class="muted dash-hint">Use the links in the header to log data and explore the app.</p>
+  <section class="dashboard-snapshots-primary" aria-labelledby="dash-snapshots-heading">
+    <div class="dashboard-card dashboard-card--snapshots">
+      <h3 id="dash-snapshots-heading" class="snapshots-hero-title">7-day progress</h3>
+      <p class="muted snapshots-hero-lead">Each row is a stored rollup: averages and totals for the seven days ending on the snapshot date.</p>
+      {% if dashboard.get('snapshots') %}
+        <div class="dashboard-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Snapshot date</th>
+                <th>Avg weight (7d)</th>
+                <th>Workouts (7d)</th>
+                <th>Avg steps (7d)</th>
+                <th>Avg sleep h (7d)</th>
+                <th>Avg protein g (7d)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in dashboard.get('snapshots', []) %}
+                <tr class="{% if loop.first %}snapshot-row-latest{% endif %}">
+                  <td>{{ s.snapshot_date }}</td>
+                  <td>{{ s.avg_weight_lbs_7d }}</td>
+                  <td>{{ s.total_workouts_7d }}</td>
+                  <td>{{ s.avg_steps_7d }}</td>
+                  <td>{{ s.avg_sleep_hours_7d }}</td>
+                  <td>{{ s.avg_protein_g_7d }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="muted">No progress snapshots yet. They appear when snapshot rows exist for your account (see seed data or your team’s load process).</p>
+      {% endif %}
     </div>
   </section>
 
@@ -142,35 +162,5 @@ Information inside: Recent activity, goals, groups, achievements, progress snaps
         {% endfor %}
       </ul>
     {% else %}<p class="muted">No achievements yet. Log metrics, meals, and workouts to unlock them.</p>{% endif %}
-  </section>
-
-  <section class="dashboard-section">
-    <h3>Progress snapshots (7-day rollups)</h3>
-    {% if dashboard.get('snapshots') %}
-      <table>
-        <thead>
-          <tr>
-            <th>Snapshot date</th>
-            <th>Avg weight 7d</th>
-            <th>Workouts 7d</th>
-            <th>Avg steps 7d</th>
-            <th>Avg sleep 7d</th>
-            <th>Avg protein 7d</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in dashboard.get('snapshots', []) %}
-            <tr>
-              <td>{{ s.snapshot_date }}</td>
-              <td>{{ s.avg_weight_lbs_7d }}</td>
-              <td>{{ s.total_workouts_7d }}</td>
-              <td>{{ s.avg_steps_7d }}</td>
-              <td>{{ s.avg_sleep_hours_7d }}</td>
-              <td>{{ s.avg_protein_g_7d }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}<p class="muted">No snapshot rows (seed includes sample snapshots if DB is loaded).</p>{% endif %}
   </section>
 {% endblock %}

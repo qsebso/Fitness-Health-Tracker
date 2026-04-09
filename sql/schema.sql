@@ -1,5 +1,4 @@
--- Used for: Database schema definition (tables, PK/FK/UNIQUE/CHECK constraints).
--- Information inside: Finalized DDL for the fitness tracker schema, including support groups.
+-- fitness_db schema: tables, keys, and constraints.
 DROP SCHEMA IF EXISTS fitness_db;
 CREATE SCHEMA fitness_db;
 use fitness_db;
@@ -26,7 +25,7 @@ CREATE TABLE daily_metrics (
     sleep_hours DECIMAL(5,2) NOT NULL CHECK (sleep_hours >= 0 AND sleep_hours <= 24),
     water_intake_cups DECIMAL(5,2) NOT NULL CHECK (water_intake_cups >= 0 AND water_intake_cups < 100),
     CONSTRAINT unique_metric_per_day UNIQUE (user_id, record_date),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE nutrition_logs (
@@ -35,11 +34,11 @@ CREATE TABLE nutrition_logs (
     log_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     meal_type ENUM('breakfast', 'lunch', 'dinner', 'snack') NOT NULL,
     food_item VARCHAR(255) NOT NULL,
-    calories INT CHECK (calories >= 0 AND calories < 10000),
+    calories INT NOT NULL CHECK (calories >= 0 AND calories < 10000),
     protein_g DECIMAL(6,2) NOT NULL CHECK (protein_g >= 0 AND protein_g < 1000),
     carbs_g DECIMAL(6,2) CHECK (carbs_g >= 0 AND carbs_g < 1000),
     fat_g DECIMAL(6,2) CHECK (fat_g >= 0 AND fat_g < 1000),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE goals (
@@ -51,7 +50,7 @@ CREATE TABLE goals (
     end_date DATE,
     status ENUM('active', 'completed', 'paused') NOT NULL,
     CHECK (end_date IS NULL OR end_date > start_date),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE daily_checkins (
@@ -63,10 +62,9 @@ CREATE TABLE daily_checkins (
     adherence_to_plan ENUM('poor', 'average', 'good') NOT NULL,
     notes TEXT,
     CONSTRAINT unique_checkin_per_day UNIQUE (user_id, record_date),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Master list of achievements (badges). Rules for "when earned" live in app code or future procedures/events.
 CREATE TABLE achievement_definitions (
     achievement_def_id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(64) NOT NULL UNIQUE,
@@ -74,15 +72,14 @@ CREATE TABLE achievement_definitions (
     description TEXT NOT NULL
 );
 
--- Rows here mean a user has earned that definition (once per user per definition).
 CREATE TABLE user_achievements (
     user_achievement_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     achievement_def_id INT NOT NULL,
     achieved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_user_achievement UNIQUE (user_id, achievement_def_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (achievement_def_id) REFERENCES achievement_definitions(achievement_def_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (achievement_def_id) REFERENCES achievement_definitions(achievement_def_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE exercise_types (
@@ -101,8 +98,8 @@ CREATE TABLE workout_logs (
     duration_minutes INT NOT NULL CHECK (duration_minutes > 0),
     calories_burned DECIMAL(6,2) CHECK (calories_burned >= 0),
     notes TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (exercise_id) REFERENCES exercise_types(exercise_id) ON DELETE RESTRICT
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (exercise_id) REFERENCES exercise_types(exercise_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE progress_snapshots (
@@ -115,7 +112,7 @@ CREATE TABLE progress_snapshots (
     avg_sleep_hours_7d DECIMAL(4,2),
     avg_protein_g_7d DECIMAL(6,2), 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT unique_snapshot_per_day UNIQUE (user_id, snapshot_date)
 );
 
@@ -125,7 +122,7 @@ CREATE TABLE support_groups (
     description TEXT,
     created_by_user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE group_memberships (
@@ -135,19 +132,18 @@ CREATE TABLE group_memberships (
     role ENUM('owner', 'member') NOT NULL DEFAULT 'member',
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_group_membership UNIQUE (group_id, user_id),
-    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Lightweight group poster board (non-realtime): members can post progress updates (realized needed later in project)
 CREATE TABLE group_posts (
     post_id INT AUTO_INCREMENT PRIMARY KEY,
     group_id INT NOT NULL,
     user_id INT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES support_groups(group_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE USER IF NOT EXISTS 'fitness_app'@'localhost' IDENTIFIED BY 'StrongPass123!';

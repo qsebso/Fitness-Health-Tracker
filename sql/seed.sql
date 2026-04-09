@@ -1,10 +1,6 @@
--- Used for: Seed data and initial lookup values.
--- Information inside: Varied sample records across all tables for functional testing.
-use fitness_db;
--- NOTE:
--- - Assumes schema.sql has already been run.
--- - Insert order follows FK dependencies.
--- - Password values are plain text for demo/grading (matches app behavior).
+-- Sample data for fitness_db. Run after schema.sql; insert order respects FKs.
+
+USE fitness_db;
 
 INSERT INTO users (username, email, password, first_name, last_name, date_of_birth, gender, height_inches)
 VALUES
@@ -13,8 +9,7 @@ VALUES
     ('sam_strength', 'sam.strength@example.com', 'hash_sam', 'Sam', 'Patel', '1995-01-28', 'other', 70),
     ('jordan_cycle', 'jordan.cycle@example.com', 'hash_jordan', 'Jordan', 'Kim', '1992-06-17', 'male', 68),
     ('ava_balance', 'ava.balance@example.com', 'hash_ava', 'Ava', 'Nguyen', '1999-11-22', 'female', 64),
-    -- Development seed account requested for UI testing.
-    ('quinn', 'quinn@example.com', 'quinn', 'Quinn', 'Tester', '1999-05-15', 'other', 69);
+    ('testuser', 'testuser@example.com', 'testuser', 'Test', 'User', '1998-07-14', 'male', 70);
 
 INSERT INTO exercise_types (name, category, muscle_group, calories_per_hour)
 VALUES
@@ -97,9 +92,9 @@ VALUES
 
 INSERT INTO support_groups (group_name, description, created_by_user_id)
 VALUES
-    ('Progress Crew', 'poster board group with sample posts', 6),
-    ('Family Wellness', 'group without posts for empty-state testing', 2),
-    ('Morning Accountability', 'accountability', 3);
+    ('Progress Crew', 'Share wins and stay accountable week to week.', 6),
+    ('Family Wellness', 'Home workouts and meal ideas for the household.', 2),
+    ('Morning Accountability', 'Early risers checking in before the day starts.', 3);
 
 INSERT INTO group_memberships (group_id, user_id, role)
 VALUES
@@ -117,10 +112,10 @@ VALUES
 INSERT INTO group_posts (group_id, user_id, content, created_at)
 VALUES
     (1, 6, 'Just lost 5 lbs this month. Small steps, big wins!', '2026-03-15 08:10:00'),
-    (1, 1, 'Huge congrats Quinn! Keep it going.', '2026-03-15 08:20:00'),
+    (1, 1, 'Huge congrats Test! Keep it going.', '2026-03-15 08:20:00'),
     (1, 2, 'Nice work! I finally hit 12k steps today too.', '2026-03-15 09:05:00');
 
--- Quinn (user_id 6): dashboard demo — active goal, metrics streaks, nutrition streak, 20+ yoga, snapshots, earned badges
+-- User 6: extra history for dashboard goals, streaks, snapshots, and achievements.
 INSERT INTO goals (user_id, goal_type, target_value, start_date, end_date, status)
 VALUES (6, 'weight_loss', 165.0, '2026-03-01', '2026-06-30', 'active');
 
@@ -203,4 +198,3 @@ VALUES
     (6, 2, '2026-03-29 08:01:00'),
     (6, 3, '2026-03-29 08:02:00'),
     (6, 4, '2026-03-29 08:03:00');
-

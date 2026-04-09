@@ -51,14 +51,11 @@ class DashboardService:
             ("nutrition", lambda: NutritionService.list_logs(uid, 5)),
             ("groups", lambda: GroupService.list_user_groups(uid)),
             ("achievements", lambda: AchievementService.list_user_achievements(uid, 6)),
-            ("snapshots", lambda: DashboardService.list_progress_snapshots(uid, 7)),
+            ("snapshots", lambda: DashboardService.list_progress_snapshots(uid, 12)),
         )
         for key, fn in loaders:
             try:
                 data[key] = fn()
             except Exception:
                 data[key] = []
-        active = [g for g in data["goals"] if g.get("status") == "active"]
-        data["active_goal_count"] = len(active)
-        data["group_count"] = len(data["groups"])
         return data

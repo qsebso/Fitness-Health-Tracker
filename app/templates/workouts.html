@@ -18,7 +18,8 @@
         </p>
         <p>Date: <input type="date" name="log_date" required></p>
         <p>Duration (minutes): <input type="number" name="duration_minutes" required></p>
-        <p>Calories Burned: <input type="number" name="calories_burned" step="0.01"></p>
+        <p>Calories burned (optional): <input type="number" name="calories_burned" step="0.01" min="0">
+            <span class="form-hint">Leave blank to estimate from the exercise type and duration.</span></p>
         <p>Notes: <input type="text" name="notes"></p>
         <button type="submit">Add Workout</button>
     </form>

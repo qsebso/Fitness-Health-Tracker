@@ -1,0 +1,119 @@
+# Fitness / Health Tracker — checklist
+
+Full rubric: Canvas (“Project Deliverable Latest_GRAD”). **Do the top sections first**; completed work is archived at the bottom.
+
+---
+
+## What to do next (in rough order)
+
+### 1. Report (PDF)
+
+- [x] README content in report: install steps, libs, versions, expected paths
+- [x] Technical specifications (stack, frameworks)
+- [x] Conceptual design: ERD in **UML**
+- [x] Logical design: crow’s foot (e.g. Workbench reverse engineer)
+- [x] User activity / flow (text or diagram)
+- [x] Lessons learned + future work (note anything broken, if applicable)
+- [ ] File name: `canvas_group_name_final_report.pdf`
+
+**Check:** PDF has every section; diagrams match submitted schema.
+
+### 2. Video / presentation (5–7 min)
+
+- [ ] Schema, architecture, and app purpose (audio/video clear)
+- [ ] **Three** CRUD demos (or two if syllabus allows): DB **before** → app → DB **after**, change visible
+- [ ] All group members participate; logical flow
+
+**Check:** Dry run with timer; one practice watch-through.
+
+### 3. Submission package
+
+- [ ] Zip: `groupname_project.zip` — schema dump, app code, report (and extras if any)
+- [ ] Submission note includes **project video link** (if required)
+- [ ] Grader can build/run from **README only** (no missing files)
+
+**Before you zip (delete from repo copy if you want a smaller submission):**  
+`tests/` and `sql/sample_queries.sql` are optional — fine to drop if the rubric doesn’t ask for them. If you remove `tests/`, consider removing `pytest` from `requirements.txt` so graders aren’t confused.
+
+**Grader / MySQL sanity checks (not in README on purpose):**  
+- Submit **`.env.example`**, not `.env` (no real passwords).  
+- `MYSQL_DATABASE` in `.env` must match `fitness_db` from `schema.sql`.  
+- Data lives on the **MySQL server** — closing Workbench doesn’t delete it. Re-running **`schema.sql`** does wipe the DB. Refreshing the browser is normal; demos usually show rows in Workbench before/after using the app.
+
+**Check:** Unzip elsewhere; README-only import DB + run app.
+
+### 4. Rubric pass (Canvas — still open)
+
+**Video / deliverable meta**
+
+- [ ] Data schema described (logical design matches data)
+- [ ] CRUD demo + verification in a second client
+- [ ] Application functionality described
+- [ ] Presentation quality (see/hear/follow)
+- [ ] Group participation
+- [ ] Logical flow of video
+
+**Submission**
+
+- [ ] Complete: DB objects + frontend + runnable dump + sample data + README; no post-deadline rescue
+
+**Report criteria**
+
+- [ ] Conceptual (UML) and logical (crow’s foot) designs
+- [ ] Document structure
+- [ ] Lessons learned + future work
+- [ ] User activity description
+- [ ] README + technical description sections
+
+**Bonus (optional)**
+
+- [ ] Any planned bonus items documented/demonstrated
+
+---
+
+## Done (archive)
+
+### Cleanup
+
+- [x] Remove unused files, dead code, and dependencies not needed for submission
+
+### Database (MySQL)
+
+- [x] Every foreign key specifies `ON UPDATE` and `ON DELETE`
+- [x] Table count meets group size (1→≥6, 2→≥9, 3→≥12); schema in 3NF
+- [x] Primary keys on all tables; FKs (and UNIQUE where needed) match ERD
+- [x] Field/table constraints: NOT NULL, DEFAULT, etc., where appropriate
+- [x] Server-side objects: procedures, functions, triggers (add event only if rubric requires)
+- [x] Self-contained setup: `schema.sql` → `seed.sql` → `procedures.sql` on fresh MySQL
+
+### Client application
+
+- [x] **CREATE** — new rows persist (Workbench/CLI)
+- [x] **READ** — data from DB
+- [x] **UPDATE** — changes persist after refresh/reconnect
+- [x] **DELETE** — rows removed in DB
+- [x] UI: clear prompts and feedback; user-driven flow
+- [x] Modularity: services + stored procedures; lean client SQL
+- [x] Error handling: bad input / DB errors without crashing the app
+
+### Wrap-up
+
+- [x] Front-end polish and remaining UI work
+- [x] Debug open issues
+- [x] Final local verification (app + DB + `pytest`)
+
+### Rubric — DB criteria (done)
+
+- [x] Complexity / 3NF / minimum tables
+- [x] PKs and FKs complete
+- [x] FKs fully specified (`ON UPDATE` / `ON DELETE`)
+- [x] Field and table constraints
+- [x] Database programming objects
+
+### Rubric — Client criteria (done)
+
+- [x] CRUD coverage across entities/tables
+- [x] User interface usability
+- [x] CREATE / READ / UPDATE / DELETE as defined
+- [x] Modularity (host language + DB objects)
+- [x] Robustness / error handling
